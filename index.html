@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한국FP센터 회원 및 매출 통합 관리</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* 헤더 */
+        .header {
+            text-align: center;
+            padding: 25px;
+            margin-bottom: 25px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: #1a73e8;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .last-update {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .refresh-btn {
+            margin-top: 12px;
+            padding: 8px 20px;
+            border: 1px solid #1a73e8;
+            border-radius: 20px;
+            background: #fff;
+            color: #1a73e8;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #1a73e8;
+            color: #fff;
+        }
+
+        /* 탭 네비게이션 */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            background: #f0f0f0;
+            color: #555;
+        }
+
+        .tab-btn:hover {
+            background: #e3f2fd;
+            color: #1a73e8;
+        }
+
+        .tab-btn.active {
+            background: #1a73e8;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 통합 현황판 카드 */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border-top: 4px solid #ddd;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .summary-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .summary-card h3 {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .summary-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .summary-card .sub-value {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .card-membership { border-top-color: #e74c3c; }
+        .card-membership .value { color: #e74c3c; }
+        
+        .card-branch { border-top-color: #3498db; }
+        .card-branch .value { color: #3498db; }
+        
+        .card-corporate { border-top-color: #9b59b6; }
+        .card-corporate .value { color: #9b59b6; }
+        
+        .card-consultant { border-top-color: #27ae60; }
+        .card-consultant .value { color: #27ae60; }
+        
+        .card-revenue { border-top-color: #f39c12; }
+        .card-revenue .value { color: #f39c12; }
+
+        /* 검색 영역 */
+        .search-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .search-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            color: #333;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-input::placeholder {
+            color: #aaa;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+
+        .search-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background: #1a73e8;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #1557b0;
+            box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+        }
+
+        .filter-select {
+            padding: 12px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            color: #333;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+
+        /* 테이블 스타일 */
+        .table-container {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table-count {
+            background: #e3f2fd;
+            color: #1a73e8;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.85rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        .data-table tr:hover {
+            background: #f8fbff;
+        }
+
+        .table-scroll {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-scroll::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+
+        /* 차트 영역 */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .chart-card h3 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        /* 배지 */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-membership { background: #fdeaea; color: #e74c3c; }
+        .badge-branch { background: #e8f4fc; color: #3498db; }
+        .badge-corporate { background: #f4ecf7; color: #9b59b6; }
+        .badge-consultant { background: #e8f8f0; color: #27ae60; }
+
+        /* 통합 검색 결과 */
+        .search-results {
+            margin-top: 20px;
+        }
+
+        .result-group {
+            margin-bottom: 20px;
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .result-group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            padding: 14px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.4rem;
+            }
+
+            .tab-btn {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+
+            .summary-card .value {
+                font-size: 1.6rem;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .data-table th, .data-table td {
+                padding: 10px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* 매출 요약 카드 */
+        .revenue-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .revenue-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-left: 4px solid #f39c12;
+        }
+
+        .revenue-card h4 {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .revenue-card .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f39c12;
+        }
+
+        /* 금액 강조 */
+        .money {
+            font-weight: 600;
+            color: #2ecc71;
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="header">
+            <h1>📊 한국FP센터 회원 및 매출 통합 관리</h1>
+            <p>멤버십 · 지사 · 기업 · 컨설턴트 회원 현황 및 매출 분석</p>
+            <div class="last-update">마지막 업데이트: <span id="lastUpdate">-</span></div>
+            <button class="refresh-btn" onclick="loadAllData()">🔄 새로고침</button>
+        </div>
+
+        <!-- 탭 네비게이션 -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="dashboard">📈 통합 현황판</button>
+            <button class="tab-btn" data-tab="membership">🎯 멤버십</button>
+            <button class="tab-btn" data-tab="branch">🏢 지사</button>
+            <button class="tab-btn" data-tab="corporate">🏛️ 기업</button>
+            <button class="tab-btn" data-tab="consultant">👔 컨설턴트</button>
+            <button class="tab-btn" data-tab="revenue">💰 매출</button>
+            <button class="tab-btn" data-tab="search">🔍 통합검색</button>
+        </div>
+
+        <!-- 탭 컨텐츠: 통합 현황판 -->
+        <div id="dashboard" class="tab-content active">
+            <div class="summary-grid">
+                <div class="summary-card card-membership">
+                    <div class="icon">🎯</div>
+                    <h3>멤버십 회원 (이너서클)</h3>
+                    <div class="value" id="membershipCount">-</div>
+                    <div class="sub-value">명</div>
+                </div>
+                <div class="summary-card card-branch">
+                    <div class="icon">🏢</div>
+                    <h3>지사</h3>
+                    <div class="value" id="branchCount">-</div>
+                    <div class="sub-value">개</div>
+                </div>
+                <div class="summary-card card-corporate">
+                    <div class="icon">🏛️</div>
+                    <h3>기업 홈페이지</h3>
+                    <div class="value" id="corporateCount">-</div>
+                    <div class="sub-value">개</div>
+                </div>
+                <div class="summary-card card-consultant">
+                    <div class="icon">👔</div>
+                    <h3>컨설턴트 홈페이지</h3>
+                    <div class="value" id="consultantCount">-</div>
+                    <div class="sub-value">명</div>
+                </div>
+                <div class="summary-card card-revenue">
+                    <div class="icon">💰</div>
+                    <h3>총 매출</h3>
+                    <div class="value" id="totalRevenue">-</div>
+                    <div class="sub-value">누적 결제금액</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>📊 회원 유형별 분포</h3>
+                    <div class="chart-container">
+                        <canvas id="memberDistChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>📈 월별 매출 추이</h3>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 컨텐츠: 멤버십 회원 -->
+        <div id="membership" class="tab-content">
+            <div class="search-section">
+                <div class="search-row">
+                    <input type="text" class="search-input" id="membershipSearch" placeholder="성명 또는 모바일로 검색...">
+                    <select class="filter-select" id="membershipFilter">
+                        <option value="all">전체 구분</option>
+                    </select>
+                    <button class="search-btn" onclick="filterMembership()">검색</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <span class="table-title">🎯 멤버십 회원 (이너서클) 목록</span>
+                    <span class="table-count" id="membershipTableCount">0명</span>
+                </div>
+                <div class="table-scroll">
+                    <table class="data-table" id="membershipTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>구분</th>
+                                <th>지사장 여부</th>
+                                <th>성명</th>
+                                <th>모바일</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 컨텐츠: 지사 -->
+        <div id="branch" class="tab-content">
+            <div class="search-section">
+                <div class="search-row">
+                    <input type="text" class="search-input" id="branchSearch" placeholder="성명 또는 모바일로 검색...">
+                    <button class="search-btn" onclick="filterBranch()">검색</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <span class="table-title">🏢 지사 목록</span>
+                    <span class="table-count" id="branchTableCount">0개</span>
+                </div>
+                <div class="table-scroll">
+                    <table class="data-table" id="branchTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>성명</th>
+                                <th>모바일</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 컨텐츠: 기업 홈페이지 -->
+        <div id="corporate" class="tab-content">
+            <div class="search-section">
+                <div class="search-row">
+                    <input type="text" class="search-input" id="corporateSearch" placeholder="회사명 또는 담당자 검색...">
+                    <button class="search-btn" onclick="filterCorporate()">검색</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <span class="table-title">🏛️ 기업 홈페이지 목록</span>
+                    <span class="table-count" id="corporateTableCount">0개</span>
+                </div>
+                <div class="table-scroll">
+                    <table class="data-table" id="corporateTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>회사명</th>
+                                <th>담당자 성명</th>
+                                <th>연락처</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 컨텐츠: 컨설턴트 -->
+        <div id="consultant" class="tab-content">
+            <div class="search-section">
+                <div class="search-row">
+                    <input type="text" class="search-input" id="consultantSearch" placeholder="성명 또는 소속사 검색...">
+                    <select class="filter-select" id="consultantCompanyFilter">
+                        <option value="all">전체 소속사</option>
+                    </select>
+                    <button class="search-btn" onclick="filterConsultant()">검색</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <span class="table-title">👔 컨설턴트 홈페이지 목록</span>
+                    <span class="table-count" id="consultantTableCount">0명</span>
+                </div>
+                <div class="table-scroll">
+                    <table class="data-table" id="consultantTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>성명</th>
+                                <th>소속사</th>
+                                <th>직함</th>
+                                <th>휴대폰 번호</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 컨텐츠: 매출 분석 -->
+        <div id="revenue" class="tab-content">
+            <div class="revenue-summary">
+                <div class="revenue-card">
+                    <h4>💵 총 매출</h4>
+                    <div class="amount" id="revenueTotalAmount">-</div>
+                </div>
+                <div class="revenue-card">
+                    <h4>📝 총 거래 건수</h4>
+                    <div class="amount" id="revenueTransCount">-</div>
+                </div>
+                <div class="revenue-card">
+                    <h4>📊 평균 결제금액</h4>
+                    <div class="amount" id="revenueAvgAmount">-</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>📊 상품별 매출 분포</h3>
+                    <div class="chart-container">
+                        <canvas id="productChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>💳 결제유형별 현황</h3>
+                    <div class="chart-container">
+                        <canvas id="paymentTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-section">
+                <div class="search-row">
+                    <input type="text" class="search-input" id="revenueSearch" placeholder="성명 또는 상품명 검색...">
+                    <select class="filter-select" id="revenueProductFilter">
+                        <option value="all">전체 상품</option>
+                    </select>
+                    <button class="search-btn" onclick="filterRevenue()">검색</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-header">
+                    <span class="table-title">💰 매출 상세 내역</span>
+                    <span class="table-count" id="revenueTableCount">0건</span>
+                </div>
+                <div class="table-scroll">
+                    <table class="data-table" id="revenueTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>일자</th>
+                                <th>성명</th>
+                                <th>결제유형</th>
+                                <th>상품</th>
+                                <th>결제금액</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 컨텐츠: 통합 검색 -->
+        <div id="search" class="tab-content">
+            <div class="search-section">
+                <div class="search-row">
+                    <input type="text" class="search-input" id="globalSearch" placeholder="성명으로 전체 시트 검색...">
+                    <button class="search-btn" onclick="performGlobalSearch()">🔍 통합 검색</button>
+                </div>
+            </div>
+            <div class="search-results" id="globalSearchResults">
+                <div class="empty-state">검색어를 입력하고 검색 버튼을 클릭하세요.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 설정 ==========
+        const SHEETS_CONFIG = {
+            membership: {
+                id: '1koeLAFaMDlBZdt5PBdMPwH_sQDVKep6qF7akomrA-Rs',
+                gid: '1952087000',
+                name: '멤버십 회원'
+            },
+            branch: {
+                id: '1kYb9zWmUPg1kk-dT_Em5bX_vpYeOSosPAQrxkT-l8FI',
+                gid: '1488154461',
+                name: '지사'
+            },
+            corporate: {
+                id: '1XINktLI192af-wch3EezcaSj_Ig0irNl862VAz90-B0',
+                sheet: '설문지 응답 시트1',
+                name: '기업 홈페이지'
+            },
+            consultant: {
+                id: '1EunJy1jJ-Mcd3mhbK3OibPydP8XkGOgoLKgJuopor8k',
+                sheet: '설문지 응답 시트1',
+                name: '컨설턴트 홈페이지'
+            }
+        };
+
+        // 매출 시트 설정 (월별로 추가 - 존재하는 시트만 입력)
+        const REVENUE_SHEETS = {
+            id: '1tWuYYz_dXLCupf1D4GqbmTq4LZjoFUH5SDppJBTh44M',
+            sheets: ['2601매출']  // 새 월 추가 시 여기에 추가: '2602매출', '2603매출' 등
+        };
+
+        // 날짜 형식 검증 함수 (실제 날짜인지 확인)
+        function isValidDate(value) {
+            if (!value) return false;
+            // Date 객체인 경우
+            if (value instanceof Date) return true;
+            
+            const str = String(value).trim();
+            
+            // Google Sheets Date 객체 형식: "Date(2026,0,2)"
+            if (/^Date\(\d+,\d+,\d+\)$/.test(str)) return true;
+            
+            // "1월", "2월" 같은 월 표시는 제외
+            if (/^\d{1,2}월$/.test(str)) return false;
+            // 숫자만 있는 경우 제외 (연도 등)
+            if (/^\d{4}$/.test(str)) return false;
+            // 날짜 패턴 확인
+            return /^\d{1,2}[\/\-\.]\d{1,2}/.test(str) || /^\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2}/.test(str);
+        }
+        
+        // Date 문자열을 읽기 좋은 형식으로 변환
+        function formatDateValue(value) {
+            if (!value) return '-';
+            const str = String(value).trim();
+            
+            // "Date(2026,0,2)" 형식 파싱
+            const match = str.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+            if (match) {
+                const year = match[1];
+                const month = parseInt(match[2]) + 1; // 월은 0부터 시작
+                const day = match[3];
+                return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            }
+            
+            return str;
+        }
+
+        // ========== 데이터 저장소 ==========
+        let allData = {
+            membership: [],
+            branch: [],
+            corporate: [],
+            consultant: [],
+            revenue: []
+        };
+
+        let charts = {};
+
+        // ========== 탭 기능 ==========
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // ========== Google Sheets API 호출 ==========
+        async function fetchSheetData(sheetId, sheetNameOrGid, isGid = false) {
+            let url;
+            if (isGid) {
+                url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=${sheetNameOrGid}`;
+            } else {
+                url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetNameOrGid)}`;
+            }
+            
+            try {
+                const response = await fetch(url);
+                const text = await response.text();
+                
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}') + 1;
+                const jsonStr = text.substring(jsonStart, jsonEnd);
+                const data = JSON.parse(jsonStr);
+                
+                if (!data.table || !data.table.rows) {
+                    return [];
+                }
+
+                // 헤더 가져오기 (label이 비어있으면 id 사용)
+                const headers = data.table.cols.map((col, idx) => {
+                    if (col.label && col.label.trim() !== '') {
+                        return col.label;
+                    }
+                    return `col_${idx}`;
+                });
+                
+                console.log('헤더 확인:', headers.slice(0, 15));
+
+                const rows = data.table.rows.map(row => {
+                    const rowData = {};
+                    if (row.c) {
+                        row.c.forEach((cell, idx) => {
+                            if (idx < headers.length) {
+                                rowData[headers[idx]] = cell ? (cell.v !== null ? cell.v : '') : '';
+                            }
+                        });
+                    }
+                    return rowData;
+                });
+
+                return rows;
+            } catch (error) {
+                console.error(`Error fetching sheet:`, error);
+                return [];
+            }
+        }
+
+        // ========== 데이터 로드 ==========
+        async function loadAllData() {
+            try {
+                // 기본 시트 데이터 로드
+                const [membership, branch, corporate, consultant] = await Promise.all([
+                    fetchSheetData(SHEETS_CONFIG.membership.id, SHEETS_CONFIG.membership.gid, true),
+                    fetchSheetData(SHEETS_CONFIG.branch.id, SHEETS_CONFIG.branch.gid, true),
+                    fetchSheetData(SHEETS_CONFIG.corporate.id, SHEETS_CONFIG.corporate.sheet),
+                    fetchSheetData(SHEETS_CONFIG.consultant.id, SHEETS_CONFIG.consultant.sheet)
+                ]);
+
+                // 매출 시트 여러 개 로드 (존재하는 시트만)
+                const revenuePromises = REVENUE_SHEETS.sheets.map(sheet => 
+                    fetchSheetData(REVENUE_SHEETS.id, sheet).catch(() => [])
+                );
+                const revenueResults = await Promise.all(revenuePromises);
+                
+                // 모든 매출 데이터 병합 및 날짜가 있는 행만 필터링
+                const rawRevenue = revenueResults.flat();
+                console.log('=== 매출 디버깅 ===');
+                console.log('원본 데이터 개수:', rawRevenue.length);
+                if (rawRevenue.length > 0) {
+                    console.log('첫 번째 행:', rawRevenue[0]);
+                    console.log('일자 값들 (처음 10개):', rawRevenue.slice(0, 10).map(r => r['일자']));
+                }
+                
+                const allRevenue = rawRevenue.filter(row => {
+                    const dateVal = row['일자'];
+                    const isValid = isValidDate(dateVal);
+                    return isValid;
+                });
+                
+                console.log('필터링 후 개수:', allRevenue.length);
+
+                // 멤버십: 연구소ID가 있는 데이터만 필터링 (AI열 = col_34)
+                // 그리고 헤더 행 제외 (성명이 '성명'인 행 제외)
+                const filteredMembership = membership.filter(row => {
+                    const researchId = row['col_34'] || row['연구소ID'];
+                    const name = row['col_7'] || row['성명'] || '';
+                    // 헤더 행 제외
+                    if (name === '성명') return false;
+                    return researchId && String(researchId).trim() !== '';
+                });
+
+                // 지사: A열(ㄱ)에 번호가 있는 데이터만 필터링, 헤더 제외
+                console.log('=== 지사 디버깅 ===');
+                console.log('지사 원본 개수:', branch.length);
+                if (branch.length > 0) {
+                    console.log('지사 첫 번째 행:', branch[0]);
+                    console.log('지사 컬럼 개수:', Object.keys(branch[0]).length);
+                }
+                
+                const filteredBranch = branch.filter(row => {
+                    const num = row['ㄱ'] || '';
+                    // 숫자인 경우만 (헤더나 빈 행 제외)
+                    return num && !isNaN(num) && String(num).trim() !== '';
+                });
+
+                allData.membership = filteredMembership;
+                allData.branch = filteredBranch;
+                allData.corporate = corporate;
+                allData.consultant = consultant;
+                allData.revenue = allRevenue;
+
+                // 멤버십 디버깅
+                console.log('=== 멤버십 디버깅 ===');
+                console.log('멤버십 원본 개수:', membership.length);
+                console.log('멤버십 필터링 후 개수:', filteredMembership.length);
+                if (membership.length > 0) {
+                    console.log('첫 번째 행:', membership[0]);
+                    console.log('컬럼명 목록:', Object.keys(membership[0]));
+                } else {
+                    console.log('멤버십 데이터가 비어있음');
+                }
+
+                console.log('매출 데이터 (필터링 후):', allRevenue.length, '건');
+
+                // UI 업데이트
+                updateDashboard();
+                updateMembershipTable();
+                updateBranchTable();
+                updateCorporateTable();
+                updateConsultantTable();
+                updateRevenueTable();
+                updateFilters();
+                updateCharts();
+
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ko-KR');
+            } catch (error) {
+                console.error('데이터 로드 실패:', error);
+            }
+        }
+
+        // ========== 대시보드 업데이트 ==========
+        function updateDashboard() {
+            document.getElementById('membershipCount').textContent = allData.membership.length.toLocaleString();
+            document.getElementById('branchCount').textContent = allData.branch.length.toLocaleString();
+            document.getElementById('corporateCount').textContent = allData.corporate.length.toLocaleString();
+            document.getElementById('consultantCount').textContent = allData.consultant.length.toLocaleString();
+
+            const totalRevenue = allData.revenue.reduce((sum, row) => {
+                const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                return sum + amount;
+            }, 0);
+            document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
+        }
+
+        // ========== 테이블 업데이트 ==========
+        function updateMembershipTable(data = null) {
+            const tableData = data || allData.membership;
+            const tbody = document.querySelector('#membershipTable tbody');
+            
+            tbody.innerHTML = tableData.map((row, idx) => {
+                // 컬럼 인덱스로 접근 (E=4, G=6, H=7, AC=28, AI=34)
+                const gubun = row['col_4'] || row['구분'] || '-';
+                const jisajang = row['col_6'] || row['지사장\n여부'] || '-';
+                const name = row['col_7'] || row['성명'] || '-';
+                const mobile = row['col_28'] || row['mobile'] || '-';
+                
+                return `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td><span class="badge badge-membership">${gubun}</span></td>
+                    <td>${jisajang}</td>
+                    <td>${name}</td>
+                    <td>${mobile}</td>
+                </tr>
+            `}).join('');
+
+            document.getElementById('membershipTableCount').textContent = `${tableData.length}명`;
+        }
+
+        function updateBranchTable(data = null) {
+            const tableData = data || allData.branch;
+            const tbody = document.querySelector('#branchTable tbody');
+            
+            tbody.innerHTML = tableData.map((row, idx) => {
+                const name = row['성명'] || '-';
+                const mobile = row['mobile'] || '-';
+                
+                return `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${name}</td>
+                    <td>${mobile}</td>
+                </tr>
+            `}).join('');
+
+            document.getElementById('branchTableCount').textContent = `${tableData.length}개`;
+        }
+
+        function updateCorporateTable(data = null) {
+            const tableData = data || allData.corporate;
+            const tbody = document.querySelector('#corporateTable tbody');
+            
+            tbody.innerHTML = tableData.map((row, idx) => `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${row['회사명'] || '-'}</td>
+                    <td>${row['담당자 성명'] || '-'}</td>
+                    <td>${row['담당자 연락처'] || '-'}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('corporateTableCount').textContent = `${tableData.length}개`;
+        }
+
+        function updateConsultantTable(data = null) {
+            const tableData = data || allData.consultant;
+            const tbody = document.querySelector('#consultantTable tbody');
+            
+            tbody.innerHTML = tableData.map((row, idx) => `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${row['성명'] || '-'}</td>
+                    <td>${row['소속사'] || '-'}</td>
+                    <td>${row['직함1'] || row['직함'] || '-'}</td>
+                    <td>${row['휴대폰 번호'] || row['휴대폰'] || '-'}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('consultantTableCount').textContent = `${tableData.length}명`;
+        }
+
+        function updateRevenueTable(data = null) {
+            const tableData = data || allData.revenue;
+            const tbody = document.querySelector('#revenueTable tbody');
+            
+            tbody.innerHTML = tableData.map((row, idx) => `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${formatDateValue(row['일자'])}</td>
+                    <td>${row['성명'] || '-'}</td>
+                    <td>${row['결제유형'] || '-'}</td>
+                    <td>${row['상품'] || '-'}</td>
+                    <td class="money">${formatCurrency(row['총 결제금액\n(카드및송금)'] || 0)}</td>
+                </tr>
+            `).join('');
+
+            document.getElementById('revenueTableCount').textContent = `${tableData.length}건`;
+
+            const total = tableData.reduce((sum, row) => {
+                const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                return sum + amount;
+            }, 0);
+            const avg = tableData.length > 0 ? total / tableData.length : 0;
+
+            document.getElementById('revenueTotalAmount').textContent = formatCurrency(total);
+            document.getElementById('revenueTransCount').textContent = tableData.length.toLocaleString() + '건';
+            document.getElementById('revenueAvgAmount').textContent = formatCurrency(avg);
+        }
+
+        // ========== 필터 업데이트 ==========
+        function updateFilters() {
+            const membershipTypes = [...new Set(allData.membership.map(r => r['col_4'] || r['구분']).filter(Boolean))];
+            const membershipFilter = document.getElementById('membershipFilter');
+            membershipFilter.innerHTML = '<option value="all">전체 구분</option>' +
+                membershipTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+
+            const companies = [...new Set(allData.consultant.map(r => r['소속사']).filter(Boolean))];
+            const companyFilter = document.getElementById('consultantCompanyFilter');
+            companyFilter.innerHTML = '<option value="all">전체 소속사</option>' +
+                companies.map(c => `<option value="${c}">${c}</option>`).join('');
+
+            const products = [...new Set(allData.revenue.map(r => r['상품']).filter(Boolean))];
+            const productFilter = document.getElementById('revenueProductFilter');
+            productFilter.innerHTML = '<option value="all">전체 상품</option>' +
+                products.map(p => `<option value="${p}">${p}</option>`).join('');
+        }
+
+        // ========== 검색/필터 함수 ==========
+        function filterMembership() {
+            const searchTerm = document.getElementById('membershipSearch').value.toLowerCase();
+            const filterValue = document.getElementById('membershipFilter').value;
+
+            const filtered = allData.membership.filter(row => {
+                const name = row['col_7'] || row['성명'] || '';
+                const mobile = row['col_28'] || row['mobile'] || '';
+                const gubun = row['col_4'] || row['구분'] || '';
+                
+                const matchSearch = !searchTerm || 
+                    String(name).toLowerCase().includes(searchTerm) ||
+                    String(mobile).includes(searchTerm);
+                const matchFilter = filterValue === 'all' || gubun === filterValue;
+                return matchSearch && matchFilter;
+            });
+
+            updateMembershipTable(filtered);
+        }
+
+        function filterBranch() {
+            const searchTerm = document.getElementById('branchSearch').value.toLowerCase();
+
+            const filtered = allData.branch.filter(row => {
+                const name = row['성명'] || '';
+                const mobile = row['mobile'] || '';
+                return !searchTerm || 
+                    String(name).toLowerCase().includes(searchTerm) ||
+                    String(mobile).includes(searchTerm);
+            });
+
+            updateBranchTable(filtered);
+        }
+
+        function filterCorporate() {
+            const searchTerm = document.getElementById('corporateSearch').value.toLowerCase();
+
+            const filtered = allData.corporate.filter(row => {
+                return !searchTerm || 
+                    (row['회사명'] || '').toLowerCase().includes(searchTerm) ||
+                    (row['담당자 성명'] || row['담당자'] || '').toLowerCase().includes(searchTerm);
+            });
+
+            updateCorporateTable(filtered);
+        }
+
+        function filterConsultant() {
+            const searchTerm = document.getElementById('consultantSearch').value.toLowerCase();
+            const filterValue = document.getElementById('consultantCompanyFilter').value;
+
+            const filtered = allData.consultant.filter(row => {
+                const matchSearch = !searchTerm || 
+                    (row['성명'] || '').toLowerCase().includes(searchTerm) ||
+                    (row['소속사'] || '').toLowerCase().includes(searchTerm);
+                const matchFilter = filterValue === 'all' || row['소속사'] === filterValue;
+                return matchSearch && matchFilter;
+            });
+
+            updateConsultantTable(filtered);
+        }
+
+        function filterRevenue() {
+            const searchTerm = document.getElementById('revenueSearch').value.toLowerCase();
+            const filterValue = document.getElementById('revenueProductFilter').value;
+
+            const filtered = allData.revenue.filter(row => {
+                const matchSearch = !searchTerm || 
+                    (row['성명'] || '').toLowerCase().includes(searchTerm) ||
+                    (row['상품'] || '').toLowerCase().includes(searchTerm);
+                const matchFilter = filterValue === 'all' || row['상품'] === filterValue;
+                return matchSearch && matchFilter;
+            });
+
+            updateRevenueTable(filtered);
+        }
+
+        // ========== 통합 검색 ==========
+        function performGlobalSearch() {
+            const searchTerm = document.getElementById('globalSearch').value.toLowerCase().trim();
+            const resultsContainer = document.getElementById('globalSearchResults');
+
+            if (!searchTerm) {
+                resultsContainer.innerHTML = '<div class="empty-state">검색어를 입력해주세요.</div>';
+                return;
+            }
+
+            let html = '';
+
+            // 멤버십 검색
+            const membershipResults = allData.membership.filter(row => 
+                String(row['col_7'] || row['성명'] || '').toLowerCase().includes(searchTerm)
+            );
+            if (membershipResults.length > 0) {
+                html += `
+                    <div class="result-group">
+                        <div class="result-group-title">🎯 멤버십 회원 (${membershipResults.length}건)</div>
+                        <div class="table-scroll" style="max-height: 200px;">
+                            <table class="data-table">
+                                <thead><tr><th>구분</th><th>성명</th><th>모바일</th></tr></thead>
+                                <tbody>
+                                    ${membershipResults.map(row => `
+                                        <tr>
+                                            <td>${row['col_4'] || row['구분'] || '-'}</td>
+                                            <td>${row['col_7'] || row['성명'] || '-'}</td>
+                                            <td>${row['col_28'] || row['mobile'] || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 지사 검색
+            const branchResults = allData.branch.filter(row => 
+                String(row['성명'] || '').toLowerCase().includes(searchTerm)
+            );
+            if (branchResults.length > 0) {
+                html += `
+                    <div class="result-group">
+                        <div class="result-group-title">🏢 지사 (${branchResults.length}건)</div>
+                        <div class="table-scroll" style="max-height: 200px;">
+                            <table class="data-table">
+                                <thead><tr><th>성명</th><th>모바일</th></tr></thead>
+                                <tbody>
+                                    ${branchResults.map(row => `
+                                        <tr>
+                                            <td>${row['성명'] || '-'}</td>
+                                            <td>${row['mobile'] || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 기업 검색
+            const corporateResults = allData.corporate.filter(row => 
+                (row['담당자 성명'] || '').toLowerCase().includes(searchTerm) ||
+                (row['회사명'] || '').toLowerCase().includes(searchTerm)
+            );
+            if (corporateResults.length > 0) {
+                html += `
+                    <div class="result-group">
+                        <div class="result-group-title">🏛️ 기업 홈페이지 (${corporateResults.length}건)</div>
+                        <div class="table-scroll" style="max-height: 200px;">
+                            <table class="data-table">
+                                <thead><tr><th>회사명</th><th>담당자</th><th>연락처</th></tr></thead>
+                                <tbody>
+                                    ${corporateResults.map(row => `
+                                        <tr>
+                                            <td>${row['회사명'] || '-'}</td>
+                                            <td>${row['담당자 성명'] || '-'}</td>
+                                            <td>${row['담당자 연락처'] || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 컨설턴트 검색
+            const consultantResults = allData.consultant.filter(row => 
+                (row['성명'] || '').toLowerCase().includes(searchTerm)
+            );
+            if (consultantResults.length > 0) {
+                html += `
+                    <div class="result-group">
+                        <div class="result-group-title">👔 컨설턴트 (${consultantResults.length}건)</div>
+                        <div class="table-scroll" style="max-height: 200px;">
+                            <table class="data-table">
+                                <thead><tr><th>성명</th><th>소속사</th><th>직함</th></tr></thead>
+                                <tbody>
+                                    ${consultantResults.map(row => `
+                                        <tr>
+                                            <td>${row['성명'] || '-'}</td>
+                                            <td>${row['소속사'] || '-'}</td>
+                                            <td>${row['직함1'] || row['직함'] || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 매출 검색
+            const revenueResults = allData.revenue.filter(row => 
+                (row['성명'] || '').toLowerCase().includes(searchTerm)
+            );
+            if (revenueResults.length > 0) {
+                const totalAmount = revenueResults.reduce((sum, row) => {
+                    const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                    return sum + amount;
+                }, 0);
+                html += `
+                    <div class="result-group">
+                        <div class="result-group-title">💰 매출 (${revenueResults.length}건, 총 ${formatCurrency(totalAmount)})</div>
+                        <div class="table-scroll" style="max-height: 200px;">
+                            <table class="data-table">
+                                <thead><tr><th>일자</th><th>성명</th><th>상품</th><th>결제금액</th></tr></thead>
+                                <tbody>
+                                    ${revenueResults.map(row => `
+                                        <tr>
+                                            <td>${formatDateValue(row['일자'])}</td>
+                                            <td>${row['성명'] || '-'}</td>
+                                            <td>${row['상품'] || '-'}</td>
+                                            <td class="money">${formatCurrency(row['총 결제금액\n(카드및송금)'] || 0)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (!html) {
+                html = '<div class="empty-state">검색 결과가 없습니다.</div>';
+            }
+
+            resultsContainer.innerHTML = html;
+        }
+
+        // ========== 차트 업데이트 ==========
+        function updateCharts() {
+            // 회원 분포 차트
+            const memberDistCtx = document.getElementById('memberDistChart').getContext('2d');
+            if (charts.memberDist) charts.memberDist.destroy();
+            charts.memberDist = new Chart(memberDistCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['멤버십', '지사', '기업', '컨설턴트'],
+                    datasets: [{
+                        data: [
+                            allData.membership.length,
+                            allData.branch.length,
+                            allData.corporate.length,
+                            allData.consultant.length
+                        ],
+                        backgroundColor: ['#e74c3c', '#3498db', '#9b59b6', '#27ae60'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#555', padding: 15, font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+
+            // 월별 매출 차트
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            if (charts.revenue) charts.revenue.destroy();
+            
+            const monthlyRevenue = {};
+            allData.revenue.forEach(row => {
+                const date = row['일자'];
+                if (date) {
+                    let month;
+                    if (typeof date === 'string') {
+                        const match = date.match(/(\d{4})[.-]?(\d{2})/);
+                        if (match) month = `${match[1]}-${match[2]}`;
+                    }
+                    if (month) {
+                        const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                        monthlyRevenue[month] = (monthlyRevenue[month] || 0) + amount;
+                    }
+                }
+            });
+
+            const sortedMonths = Object.keys(monthlyRevenue).sort();
+            charts.revenue = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: sortedMonths.length > 0 ? sortedMonths : ['데이터 없음'],
+                    datasets: [{
+                        label: '월별 매출',
+                        data: sortedMonths.length > 0 ? sortedMonths.map(m => monthlyRevenue[m]) : [0],
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#f39c12',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#888' },
+                            grid: { color: '#eee' }
+                        },
+                        x: {
+                            ticks: { color: '#888' },
+                            grid: { color: '#eee' }
+                        }
+                    }
+                }
+            });
+
+            // 상품별 매출 차트
+            const productCtx = document.getElementById('productChart').getContext('2d');
+            if (charts.product) charts.product.destroy();
+            
+            const productRevenue = {};
+            allData.revenue.forEach(row => {
+                const product = row['상품'] || '기타';
+                const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                productRevenue[product] = (productRevenue[product] || 0) + amount;
+            });
+
+            const productLabels = Object.keys(productRevenue);
+            const productData = productLabels.map(p => productRevenue[p]);
+            const productColors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'];
+
+            charts.product = new Chart(productCtx, {
+                type: 'pie',
+                data: {
+                    labels: productLabels.length > 0 ? productLabels : ['데이터 없음'],
+                    datasets: [{
+                        data: productData.length > 0 ? productData : [1],
+                        backgroundColor: productColors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#555', font: { size: 11 }, padding: 10 }
+                        }
+                    }
+                }
+            });
+
+            // 결제유형별 차트
+            const paymentCtx = document.getElementById('paymentTypeChart').getContext('2d');
+            if (charts.payment) charts.payment.destroy();
+            
+            const paymentType = {};
+            allData.revenue.forEach(row => {
+                const type = row['결제유형'] || '기타';
+                const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                paymentType[type] = (paymentType[type] || 0) + amount;
+            });
+
+            const paymentLabels = Object.keys(paymentType);
+            const paymentData = paymentLabels.map(p => paymentType[p]);
+
+            charts.payment = new Chart(paymentCtx, {
+                type: 'bar',
+                data: {
+                    labels: paymentLabels.length > 0 ? paymentLabels : ['데이터 없음'],
+                    datasets: [{
+                        label: '결제금액',
+                        data: paymentData.length > 0 ? paymentData : [0],
+                        backgroundColor: '#3498db',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#888' },
+                            grid: { color: '#eee' }
+                        },
+                        x: {
+                            ticks: { color: '#888' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ========== 유틸리티 함수 ==========
+        function formatCurrency(value) {
+            const num = parseFloat(String(value).replace(/[,원]/g, '')) || 0;
+            if (num >= 100000000) {
+                return (num / 100000000).toFixed(1) + '억원';
+            } else if (num >= 10000) {
+                return (num / 10000).toFixed(0) + '만원';
+            }
+            return num.toLocaleString('ko-KR') + '원';
+        }
+
+        // ========== 엔터키 검색 ==========
+        document.querySelectorAll('.search-input').forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const btn = input.parentElement.querySelector('.search-btn');
+                    if (btn) btn.click();
+                }
+            });
+        });
+
+        // ========== 초기화 ==========
+        document.addEventListener('DOMContentLoaded', loadAllData);
+
+        // 5분마다 자동 새로고침
+        setInterval(loadAllData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
