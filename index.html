@@ -1669,7 +1669,7 @@
 
         // ========== 유틸리티 함수 ==========
         function formatCurrency(value) {
-            const num = parseFloat(String(value).replace(/[,원]/g, '')) || 0;
+            const num = Math.round(parseFloat(String(value).replace(/[,원]/g, '')) || 0);
             return num.toLocaleString('ko-KR') + '원';
         }
 
