@@ -296,6 +296,34 @@
             color: #555;
             font-size: 0.85rem;
             border-bottom: 2px solid #eee;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .data-table th:hover {
+            background: #e9ecef;
+        }
+
+        .data-table th .sort-icon {
+            margin-left: 5px;
+            font-size: 0.75rem;
+            color: #aaa;
+        }
+
+        .data-table th.sort-asc .sort-icon::after {
+            content: '▲';
+            color: #1a73e8;
+        }
+
+        .data-table th.sort-desc .sort-icon::after {
+            content: '▼';
+            color: #1a73e8;
+        }
+
+        .data-table th:not(.sort-asc):not(.sort-desc) .sort-icon::after {
+            content: '⇅';
         }
 
         .data-table td {
@@ -555,11 +583,11 @@
                     <table class="data-table" id="membershipTable">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>구분</th>
-                                <th>지사장 여부</th>
-                                <th>성명</th>
-                                <th>모바일</th>
+                                <th onclick="sortTable('membership', 'no')">No<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('membership', 'name')">이름<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('membership', 'company')">회사명<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('membership', 'mobile')">전화번호<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('membership', 'promotion')">비고<span class="sort-icon"></span></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -585,9 +613,9 @@
                     <table class="data-table" id="branchTable">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>성명</th>
-                                <th>모바일</th>
+                                <th onclick="sortTable('branch', 'no')">No<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('branch', 'name')">성명<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('branch', 'mobile')">모바일<span class="sort-icon"></span></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -613,10 +641,11 @@
                     <table class="data-table" id="corporateTable">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>회사명</th>
-                                <th>담당자 성명</th>
-                                <th>연락처</th>
+                                <th onclick="sortTable('corporate', 'no')">No<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('corporate', 'company')">회사명<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('corporate', 'name')">담당자<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('corporate', 'mobile')">전화번호<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('corporate', 'promotion')">비고<span class="sort-icon"></span></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -645,11 +674,11 @@
                     <table class="data-table" id="consultantTable">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>성명</th>
-                                <th>소속사</th>
-                                <th>직함</th>
-                                <th>휴대폰 번호</th>
+                                <th onclick="sortTable('consultant', 'no')">No<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('consultant', 'name')">이름<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('consultant', 'company')">회사명<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('consultant', 'mobile')">전화번호<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('consultant', 'promotion')">비고<span class="sort-icon"></span></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -708,12 +737,12 @@
                     <table class="data-table" id="revenueTable">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <th>일자</th>
-                                <th>성명</th>
-                                <th>결제유형</th>
-                                <th>상품</th>
-                                <th>결제금액</th>
+                                <th onclick="sortTable('revenue', 'no')">No<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('revenue', 'date')">일자<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('revenue', 'name')">성명<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('revenue', 'type')">결제유형<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('revenue', 'product')">상품<span class="sort-icon"></span></th>
+                                <th onclick="sortTable('revenue', 'amount')">결제금액<span class="sort-icon"></span></th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -739,25 +768,15 @@
     <script>
         // ========== 설정 ==========
         const SHEETS_CONFIG = {
-            membership: {
-                id: '1koeLAFaMDlBZdt5PBdMPwH_sQDVKep6qF7akomrA-Rs',
-                gid: '1952087000',
-                name: '멤버십 회원'
+            paymentDB: {
+                id: '1dFbVzxDv-77bNdMEM2oe-xiRRPndBXQ6WEWKkFf3cjY',
+                gid: '0',
+                name: '회원 DB'
             },
             branch: {
                 id: '1kYb9zWmUPg1kk-dT_Em5bX_vpYeOSosPAQrxkT-l8FI',
                 gid: '1488154461',
                 name: '지사'
-            },
-            corporate: {
-                id: '1XINktLI192af-wch3EezcaSj_Ig0irNl862VAz90-B0',
-                sheet: '설문지 응답 시트1',
-                name: '기업 홈페이지'
-            },
-            consultant: {
-                id: '1EunJy1jJ-Mcd3mhbK3OibPydP8XkGOgoLKgJuopor8k',
-                sheet: '설문지 응답 시트1',
-                name: '컨설턴트 홈페이지'
             }
         };
 
@@ -878,12 +897,10 @@
         // ========== 데이터 로드 ==========
         async function loadAllData() {
             try {
-                // 기본 시트 데이터 로드
-                const [membership, branch, corporate, consultant] = await Promise.all([
-                    fetchSheetData(SHEETS_CONFIG.membership.id, SHEETS_CONFIG.membership.gid, true),
-                    fetchSheetData(SHEETS_CONFIG.branch.id, SHEETS_CONFIG.branch.gid, true),
-                    fetchSheetData(SHEETS_CONFIG.corporate.id, SHEETS_CONFIG.corporate.sheet),
-                    fetchSheetData(SHEETS_CONFIG.consultant.id, SHEETS_CONFIG.consultant.sheet)
+                // paymentDB와 지사 데이터 로드
+                const [paymentDB, branch] = await Promise.all([
+                    fetchSheetData(SHEETS_CONFIG.paymentDB.id, SHEETS_CONFIG.paymentDB.gid, true),
+                    fetchSheetData(SHEETS_CONFIG.branch.id, SHEETS_CONFIG.branch.gid, true)
                 ]);
 
                 // 매출 시트 여러 개 로드 (존재하는 시트만)
@@ -896,10 +913,6 @@
                 const rawRevenue = revenueResults.flat();
                 console.log('=== 매출 디버깅 ===');
                 console.log('원본 데이터 개수:', rawRevenue.length);
-                if (rawRevenue.length > 0) {
-                    console.log('첫 번째 행:', rawRevenue[0]);
-                    console.log('일자 값들 (처음 10개):', rawRevenue.slice(0, 10).map(r => r['일자']));
-                }
                 
                 const allRevenue = rawRevenue.filter(row => {
                     const dateVal = row['일자'];
@@ -909,46 +922,49 @@
                 
                 console.log('필터링 후 개수:', allRevenue.length);
 
-                // 멤버십: 연구소ID가 있는 데이터만 필터링 (AI열 = col_34)
-                // 그리고 헤더 행 제외 (성명이 '성명'인 행 제외)
-                const filteredMembership = membership.filter(row => {
-                    const researchId = row['col_34'] || row['연구소ID'];
-                    const name = row['col_7'] || row['성명'] || '';
-                    // 헤더 행 제외
-                    if (name === '성명') return false;
-                    return researchId && String(researchId).trim() !== '';
+                // paymentDB 디버깅
+                console.log('=== paymentDB 디버깅 ===');
+                console.log('paymentDB 원본 개수:', paymentDB.length);
+                if (paymentDB.length > 0) {
+                    console.log('첫 번째 행:', paymentDB[0]);
+                    console.log('컬럼명 목록:', Object.keys(paymentDB[0]));
+                }
+
+                // paymentDB에서 membership 유형별로 분류
+                const membership = paymentDB.filter(row => {
+                    const membershipType = row['membership'] || '';
+                    return membershipType === 'inner_circle';
                 });
+
+                const corporate = paymentDB.filter(row => {
+                    const membershipType = row['membership'] || '';
+                    return membershipType === 'cor_home';
+                });
+
+                const consultant = paymentDB.filter(row => {
+                    const membershipType = row['membership'] || '';
+                    return membershipType === 'con_home';
+                });
+
+                console.log('=== 회원 분류 결과 ===');
+                console.log('이너서클:', membership.length);
+                console.log('기업 홈페이지:', corporate.length);
+                console.log('컨설턴트:', consultant.length);
 
                 // 지사: A열(ㄱ)에 번호가 있는 데이터만 필터링, 헤더 제외
                 console.log('=== 지사 디버깅 ===');
                 console.log('지사 원본 개수:', branch.length);
-                if (branch.length > 0) {
-                    console.log('지사 첫 번째 행:', branch[0]);
-                    console.log('지사 컬럼 개수:', Object.keys(branch[0]).length);
-                }
                 
                 const filteredBranch = branch.filter(row => {
                     const num = row['ㄱ'] || '';
-                    // 숫자인 경우만 (헤더나 빈 행 제외)
                     return num && !isNaN(num) && String(num).trim() !== '';
                 });
 
-                allData.membership = filteredMembership;
+                allData.membership = membership;
                 allData.branch = filteredBranch;
                 allData.corporate = corporate;
                 allData.consultant = consultant;
                 allData.revenue = allRevenue;
-
-                // 멤버십 디버깅
-                console.log('=== 멤버십 디버깅 ===');
-                console.log('멤버십 원본 개수:', membership.length);
-                console.log('멤버십 필터링 후 개수:', filteredMembership.length);
-                if (membership.length > 0) {
-                    console.log('첫 번째 행:', membership[0]);
-                    console.log('컬럼명 목록:', Object.keys(membership[0]));
-                } else {
-                    console.log('멤버십 데이터가 비어있음');
-                }
 
                 console.log('매출 데이터 (필터링 후):', allRevenue.length, '건');
 
@@ -988,19 +1004,19 @@
             const tbody = document.querySelector('#membershipTable tbody');
             
             tbody.innerHTML = tableData.map((row, idx) => {
-                // 컬럼 인덱스로 접근 (E=4, G=6, H=7, AC=28, AI=34)
-                const gubun = row['col_4'] || row['구분'] || '-';
-                const jisajang = row['col_6'] || row['지사장\n여부'] || '-';
-                const name = row['col_7'] || row['성명'] || '-';
-                const mobile = row['col_28'] || row['mobile'] || '-';
+                // paymentDB 컬럼: name, promotion, company_name, mobile
+                const name = row['name'] || '-';
+                const promotion = row['promotion'] || '-';
+                const companyName = row['company_name'] || '-';
+                const mobile = row['mobile'] || '-';
                 
                 return `
                 <tr>
                     <td>${idx + 1}</td>
-                    <td><span class="badge badge-membership">${gubun}</span></td>
-                    <td>${jisajang}</td>
                     <td>${name}</td>
+                    <td>${companyName}</td>
                     <td>${mobile}</td>
+                    <td>${promotion}</td>
                 </tr>
             `}).join('');
 
@@ -1030,14 +1046,22 @@
             const tableData = data || allData.corporate;
             const tbody = document.querySelector('#corporateTable tbody');
             
-            tbody.innerHTML = tableData.map((row, idx) => `
+            tbody.innerHTML = tableData.map((row, idx) => {
+                // paymentDB 컬럼: name, promotion, company_name, mobile
+                const name = row['name'] || '-';
+                const companyName = row['company_name'] || '-';
+                const mobile = row['mobile'] || '-';
+                const promotion = row['promotion'] || '-';
+                
+                return `
                 <tr>
                     <td>${idx + 1}</td>
-                    <td>${row['회사명'] || '-'}</td>
-                    <td>${row['담당자 성명'] || '-'}</td>
-                    <td>${row['담당자 연락처'] || '-'}</td>
+                    <td>${companyName}</td>
+                    <td>${name}</td>
+                    <td>${mobile}</td>
+                    <td>${promotion}</td>
                 </tr>
-            `).join('');
+            `}).join('');
 
             document.getElementById('corporateTableCount').textContent = `${tableData.length}개`;
         }
@@ -1046,15 +1070,22 @@
             const tableData = data || allData.consultant;
             const tbody = document.querySelector('#consultantTable tbody');
             
-            tbody.innerHTML = tableData.map((row, idx) => `
+            tbody.innerHTML = tableData.map((row, idx) => {
+                // paymentDB 컬럼: name, promotion, company_name, mobile
+                const name = row['name'] || '-';
+                const companyName = row['company_name'] || '-';
+                const mobile = row['mobile'] || '-';
+                const promotion = row['promotion'] || '-';
+                
+                return `
                 <tr>
                     <td>${idx + 1}</td>
-                    <td>${row['성명'] || '-'}</td>
-                    <td>${row['소속사'] || '-'}</td>
-                    <td>${row['직함1'] || row['직함'] || '-'}</td>
-                    <td>${row['휴대폰 번호'] || row['휴대폰'] || '-'}</td>
+                    <td>${name}</td>
+                    <td>${companyName}</td>
+                    <td>${mobile}</td>
+                    <td>${promotion}</td>
                 </tr>
-            `).join('');
+            `}).join('');
 
             document.getElementById('consultantTableCount').textContent = `${tableData.length}명`;
         }
@@ -1089,14 +1120,15 @@
 
         // ========== 필터 업데이트 ==========
         function updateFilters() {
-            const membershipTypes = [...new Set(allData.membership.map(r => r['col_4'] || r['구분']).filter(Boolean))];
+            // 멤버십 필터는 이제 필요 없지만 HTML 요소가 있으면 초기화
             const membershipFilter = document.getElementById('membershipFilter');
-            membershipFilter.innerHTML = '<option value="all">전체 구분</option>' +
-                membershipTypes.map(t => `<option value="${t}">${t}</option>`).join('');
+            if (membershipFilter) {
+                membershipFilter.innerHTML = '<option value="all">전체</option>';
+            }
 
-            const companies = [...new Set(allData.consultant.map(r => r['소속사']).filter(Boolean))];
+            const companies = [...new Set(allData.consultant.map(r => r['company_name']).filter(Boolean))];
             const companyFilter = document.getElementById('consultantCompanyFilter');
-            companyFilter.innerHTML = '<option value="all">전체 소속사</option>' +
+            companyFilter.innerHTML = '<option value="all">전체 회사</option>' +
                 companies.map(c => `<option value="${c}">${c}</option>`).join('');
 
             const products = [...new Set(allData.revenue.map(r => r['상품']).filter(Boolean))];
@@ -1111,15 +1143,15 @@
             const filterValue = document.getElementById('membershipFilter').value;
 
             const filtered = allData.membership.filter(row => {
-                const name = row['col_7'] || row['성명'] || '';
-                const mobile = row['col_28'] || row['mobile'] || '';
-                const gubun = row['col_4'] || row['구분'] || '';
+                const name = row['name'] || '';
+                const mobile = row['mobile'] || '';
+                const companyName = row['company_name'] || '';
                 
                 const matchSearch = !searchTerm || 
                     String(name).toLowerCase().includes(searchTerm) ||
-                    String(mobile).includes(searchTerm);
-                const matchFilter = filterValue === 'all' || gubun === filterValue;
-                return matchSearch && matchFilter;
+                    String(mobile).includes(searchTerm) ||
+                    String(companyName).toLowerCase().includes(searchTerm);
+                return matchSearch;
             });
 
             updateMembershipTable(filtered);
@@ -1143,9 +1175,14 @@
             const searchTerm = document.getElementById('corporateSearch').value.toLowerCase();
 
             const filtered = allData.corporate.filter(row => {
+                const name = row['name'] || '';
+                const companyName = row['company_name'] || '';
+                const mobile = row['mobile'] || '';
+                
                 return !searchTerm || 
-                    (row['회사명'] || '').toLowerCase().includes(searchTerm) ||
-                    (row['담당자 성명'] || row['담당자'] || '').toLowerCase().includes(searchTerm);
+                    String(companyName).toLowerCase().includes(searchTerm) ||
+                    String(name).toLowerCase().includes(searchTerm) ||
+                    String(mobile).includes(searchTerm);
             });
 
             updateCorporateTable(filtered);
@@ -1156,10 +1193,15 @@
             const filterValue = document.getElementById('consultantCompanyFilter').value;
 
             const filtered = allData.consultant.filter(row => {
+                const name = row['name'] || '';
+                const companyName = row['company_name'] || '';
+                const mobile = row['mobile'] || '';
+                
                 const matchSearch = !searchTerm || 
-                    (row['성명'] || '').toLowerCase().includes(searchTerm) ||
-                    (row['소속사'] || '').toLowerCase().includes(searchTerm);
-                const matchFilter = filterValue === 'all' || row['소속사'] === filterValue;
+                    String(name).toLowerCase().includes(searchTerm) ||
+                    String(companyName).toLowerCase().includes(searchTerm) ||
+                    String(mobile).includes(searchTerm);
+                const matchFilter = filterValue === 'all' || companyName === filterValue;
                 return matchSearch && matchFilter;
             });
 
@@ -1193,23 +1235,24 @@
 
             let html = '';
 
-            // 멤버십 검색
+            // 멤버십(이너서클) 검색
             const membershipResults = allData.membership.filter(row => 
-                String(row['col_7'] || row['성명'] || '').toLowerCase().includes(searchTerm)
+                String(row['name'] || '').toLowerCase().includes(searchTerm) ||
+                String(row['company_name'] || '').toLowerCase().includes(searchTerm)
             );
             if (membershipResults.length > 0) {
                 html += `
                     <div class="result-group">
-                        <div class="result-group-title">🎯 멤버십 회원 (${membershipResults.length}건)</div>
+                        <div class="result-group-title">🎯 이너서클 회원 (${membershipResults.length}건)</div>
                         <div class="table-scroll" style="max-height: 200px;">
                             <table class="data-table">
-                                <thead><tr><th>구분</th><th>성명</th><th>모바일</th></tr></thead>
+                                <thead><tr><th>이름</th><th>회사명</th><th>전화번호</th></tr></thead>
                                 <tbody>
                                     ${membershipResults.map(row => `
                                         <tr>
-                                            <td>${row['col_4'] || row['구분'] || '-'}</td>
-                                            <td>${row['col_7'] || row['성명'] || '-'}</td>
-                                            <td>${row['col_28'] || row['mobile'] || '-'}</td>
+                                            <td>${row['name'] || '-'}</td>
+                                            <td>${row['company_name'] || '-'}</td>
+                                            <td>${row['mobile'] || '-'}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -1246,8 +1289,8 @@
 
             // 기업 검색
             const corporateResults = allData.corporate.filter(row => 
-                (row['담당자 성명'] || '').toLowerCase().includes(searchTerm) ||
-                (row['회사명'] || '').toLowerCase().includes(searchTerm)
+                String(row['name'] || '').toLowerCase().includes(searchTerm) ||
+                String(row['company_name'] || '').toLowerCase().includes(searchTerm)
             );
             if (corporateResults.length > 0) {
                 html += `
@@ -1255,13 +1298,13 @@
                         <div class="result-group-title">🏛️ 기업 홈페이지 (${corporateResults.length}건)</div>
                         <div class="table-scroll" style="max-height: 200px;">
                             <table class="data-table">
-                                <thead><tr><th>회사명</th><th>담당자</th><th>연락처</th></tr></thead>
+                                <thead><tr><th>회사명</th><th>담당자</th><th>전화번호</th></tr></thead>
                                 <tbody>
                                     ${corporateResults.map(row => `
                                         <tr>
-                                            <td>${row['회사명'] || '-'}</td>
-                                            <td>${row['담당자 성명'] || '-'}</td>
-                                            <td>${row['담당자 연락처'] || '-'}</td>
+                                            <td>${row['company_name'] || '-'}</td>
+                                            <td>${row['name'] || '-'}</td>
+                                            <td>${row['mobile'] || '-'}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -1273,7 +1316,8 @@
 
             // 컨설턴트 검색
             const consultantResults = allData.consultant.filter(row => 
-                (row['성명'] || '').toLowerCase().includes(searchTerm)
+                String(row['name'] || '').toLowerCase().includes(searchTerm) ||
+                String(row['company_name'] || '').toLowerCase().includes(searchTerm)
             );
             if (consultantResults.length > 0) {
                 html += `
@@ -1281,13 +1325,13 @@
                         <div class="result-group-title">👔 컨설턴트 (${consultantResults.length}건)</div>
                         <div class="table-scroll" style="max-height: 200px;">
                             <table class="data-table">
-                                <thead><tr><th>성명</th><th>소속사</th><th>직함</th></tr></thead>
+                                <thead><tr><th>이름</th><th>회사명</th><th>전화번호</th></tr></thead>
                                 <tbody>
                                     ${consultantResults.map(row => `
                                         <tr>
-                                            <td>${row['성명'] || '-'}</td>
-                                            <td>${row['소속사'] || '-'}</td>
-                                            <td>${row['직함1'] || row['직함'] || '-'}</td>
+                                            <td>${row['name'] || '-'}</td>
+                                            <td>${row['company_name'] || '-'}</td>
+                                            <td>${row['mobile'] || '-'}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -1501,6 +1545,126 @@
                     }
                 }
             });
+        }
+
+        // ========== 정렬 기능 ==========
+        let sortState = {
+            membership: { column: null, order: 'asc' },
+            branch: { column: null, order: 'asc' },
+            corporate: { column: null, order: 'asc' },
+            consultant: { column: null, order: 'asc' },
+            revenue: { column: null, order: 'asc' }
+        };
+
+        function sortTable(tableType, column) {
+            const state = sortState[tableType];
+            
+            // 같은 컬럼 클릭 시 정렬 순서 토글
+            if (state.column === column) {
+                state.order = state.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.column = column;
+                state.order = 'asc';
+            }
+
+            // 데이터 정렬
+            const data = [...allData[tableType]];
+            
+            data.sort((a, b) => {
+                let valA, valB;
+                
+                // 컬럼별 값 추출
+                switch(tableType) {
+                    case 'membership':
+                        if (column === 'name') { valA = a['name'] || ''; valB = b['name'] || ''; }
+                        else if (column === 'company') { valA = a['company_name'] || ''; valB = b['company_name'] || ''; }
+                        else if (column === 'mobile') { valA = a['mobile'] || ''; valB = b['mobile'] || ''; }
+                        else if (column === 'promotion') { valA = a['promotion'] || ''; valB = b['promotion'] || ''; }
+                        break;
+                    case 'branch':
+                        if (column === 'name') { valA = a['성명'] || ''; valB = b['성명'] || ''; }
+                        else if (column === 'mobile') { valA = a['mobile'] || ''; valB = b['mobile'] || ''; }
+                        break;
+                    case 'corporate':
+                        if (column === 'company') { valA = a['company_name'] || ''; valB = b['company_name'] || ''; }
+                        else if (column === 'name') { valA = a['name'] || ''; valB = b['name'] || ''; }
+                        else if (column === 'mobile') { valA = a['mobile'] || ''; valB = b['mobile'] || ''; }
+                        else if (column === 'promotion') { valA = a['promotion'] || ''; valB = b['promotion'] || ''; }
+                        break;
+                    case 'consultant':
+                        if (column === 'name') { valA = a['name'] || ''; valB = b['name'] || ''; }
+                        else if (column === 'company') { valA = a['company_name'] || ''; valB = b['company_name'] || ''; }
+                        else if (column === 'mobile') { valA = a['mobile'] || ''; valB = b['mobile'] || ''; }
+                        else if (column === 'promotion') { valA = a['promotion'] || ''; valB = b['promotion'] || ''; }
+                        break;
+                    case 'revenue':
+                        if (column === 'date') { valA = a['일자'] || ''; valB = b['일자'] || ''; }
+                        else if (column === 'name') { valA = a['성명'] || ''; valB = b['성명'] || ''; }
+                        else if (column === 'type') { valA = a['결제유형'] || ''; valB = b['결제유형'] || ''; }
+                        else if (column === 'product') { valA = a['상품'] || ''; valB = b['상품'] || ''; }
+                        else if (column === 'amount') { 
+                            valA = parseFloat(String(a['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                            valB = parseFloat(String(b['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                        }
+                        break;
+                }
+                
+                // 숫자인 경우
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return state.order === 'asc' ? valA - valB : valB - valA;
+                }
+                
+                // 문자열인 경우
+                valA = String(valA).toLowerCase();
+                valB = String(valB).toLowerCase();
+                
+                if (state.order === 'asc') {
+                    return valA.localeCompare(valB, 'ko');
+                } else {
+                    return valB.localeCompare(valA, 'ko');
+                }
+            });
+
+            // 테이블 업데이트
+            switch(tableType) {
+                case 'membership': updateMembershipTable(data); break;
+                case 'branch': updateBranchTable(data); break;
+                case 'corporate': updateCorporateTable(data); break;
+                case 'consultant': updateConsultantTable(data); break;
+                case 'revenue': updateRevenueTable(data); break;
+            }
+
+            // 헤더 스타일 업데이트
+            updateSortHeader(tableType, column, state.order);
+        }
+
+        function updateSortHeader(tableType, column, order) {
+            const tableId = tableType + 'Table';
+            const table = document.getElementById(tableId);
+            if (!table) return;
+
+            // 모든 헤더에서 정렬 클래스 제거
+            table.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            // 현재 정렬 컬럼에 클래스 추가
+            const headerIndex = getHeaderIndex(tableType, column);
+            const th = table.querySelectorAll('th')[headerIndex];
+            if (th) {
+                th.classList.add(order === 'asc' ? 'sort-asc' : 'sort-desc');
+            }
+        }
+
+        function getHeaderIndex(tableType, column) {
+            const indexMap = {
+                membership: { no: 0, name: 1, company: 2, mobile: 3, promotion: 4 },
+                branch: { no: 0, name: 1, mobile: 2 },
+                corporate: { no: 0, company: 1, name: 2, mobile: 3, promotion: 4 },
+                consultant: { no: 0, name: 1, company: 2, mobile: 3, promotion: 4 },
+                revenue: { no: 0, date: 1, name: 2, type: 3, product: 4, amount: 5 }
+            };
+            return indexMap[tableType]?.[column] ?? 0;
         }
 
         // ========== 유틸리티 함수 ==========
