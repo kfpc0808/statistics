@@ -960,17 +960,24 @@
                 availableMonths = [];
                 
                 REVENUE_SHEETS.sheets.forEach((sheetName, idx) => {
-                    const monthData = revenueResults[idx].filter(row => {
+                    const sheetData = revenueResults[idx];
+                    
+                    // 시트에 데이터가 없으면 건너뛰기
+                    if (!sheetData || sheetData.length === 0) return;
+                    
+                    const monthData = sheetData.filter(row => {
                         const dateVal = row['일자'];
                         return isValidDate(dateVal);
                     });
                     
+                    // 유효한 데이터가 있는 월만 추가
                     if (monthData.length > 0) {
                         // 시트명에서 월 추출 (예: "2601매출" -> "1월", "2602매출" -> "2월")
                         const monthNum = parseInt(sheetName.substring(2, 4));
                         const monthKey = `${monthNum}월`;
                         revenueByMonth[monthKey] = monthData;
                         availableMonths.push({ key: monthKey, num: monthNum, name: `${monthNum}월` });
+                        console.log(`${monthKey}: ${monthData.length}건 로드됨`);
                     }
                 });
                 
