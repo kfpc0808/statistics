@@ -455,6 +455,41 @@
             margin-bottom: 25px;
         }
 
+        /* 월별 필터 버튼 */
+        .month-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .month-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            background: #fff;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .month-btn:hover {
+            border-color: #f39c12;
+            color: #f39c12;
+        }
+
+        .month-btn.active {
+            background: #f39c12;
+            border-color: #f39c12;
+            color: #fff;
+        }
+
         .revenue-card {
             background: #fff;
             border-radius: 12px;
@@ -689,6 +724,12 @@
 
         <!-- 탭 컨텐츠: 매출 분석 -->
         <div id="revenue" class="tab-content">
+            <!-- 월별 필터 버튼 -->
+            <div class="month-filter" id="monthFilter">
+                <button class="month-btn active" data-month="all" onclick="filterByMonth('all')">전체</button>
+                <!-- 월 버튼은 JavaScript에서 동적으로 추가됨 -->
+            </div>
+
             <div class="revenue-summary">
                 <div class="revenue-card">
                     <h4>💵 총 매출</h4>
@@ -780,11 +821,16 @@
             }
         };
 
-        // 매출 시트 설정 (월별로 추가 - 존재하는 시트만 입력)
+        // 매출 시트 설정 (자동으로 모든 월 시도)
         const REVENUE_SHEETS = {
             id: '1tWuYYz_dXLCupf1D4GqbmTq4LZjoFUH5SDppJBTh44M',
-            sheets: ['2601매출']  // 새 월 추가 시 여기에 추가: '2602매출', '2603매출' 등
+            sheets: ['2601매출', '2602매출', '2603매출', '2604매출', '2605매출', '2606매출',
+                     '2607매출', '2608매출', '2609매출', '2610매출', '2611매출', '2612매출']
         };
+
+        // 월별 매출 데이터 저장
+        let revenueByMonth = {};
+        let availableMonths = []; // 실제 데이터가 있는 월 목록
 
         // 날짜 형식 검증 함수 (실제 날짜인지 확인)
         function isValidDate(value) {
@@ -909,18 +955,37 @@
                 );
                 const revenueResults = await Promise.all(revenuePromises);
                 
-                // 모든 매출 데이터 병합 및 날짜가 있는 행만 필터링
-                const rawRevenue = revenueResults.flat();
-                console.log('=== 매출 디버깅 ===');
-                console.log('원본 데이터 개수:', rawRevenue.length);
+                // 월별로 데이터 저장
+                revenueByMonth = {};
+                availableMonths = [];
                 
-                const allRevenue = rawRevenue.filter(row => {
-                    const dateVal = row['일자'];
-                    const isValid = isValidDate(dateVal);
-                    return isValid;
+                REVENUE_SHEETS.sheets.forEach((sheetName, idx) => {
+                    const monthData = revenueResults[idx].filter(row => {
+                        const dateVal = row['일자'];
+                        return isValidDate(dateVal);
+                    });
+                    
+                    if (monthData.length > 0) {
+                        // 시트명에서 월 추출 (예: "2601매출" -> "1월", "2602매출" -> "2월")
+                        const monthNum = parseInt(sheetName.substring(2, 4));
+                        const monthKey = `${monthNum}월`;
+                        revenueByMonth[monthKey] = monthData;
+                        availableMonths.push({ key: monthKey, num: monthNum, name: `${monthNum}월` });
+                    }
                 });
                 
-                console.log('필터링 후 개수:', allRevenue.length);
+                // 월 정렬 (1월, 2월, 3월 순서로)
+                availableMonths.sort((a, b) => a.num - b.num);
+                
+                // 모든 매출 데이터 병합
+                const allRevenue = Object.values(revenueByMonth).flat();
+                
+                console.log('=== 매출 디버깅 ===');
+                console.log('사용 가능한 월:', availableMonths.map(m => m.name));
+                console.log('전체 매출 데이터:', allRevenue.length, '건');
+                
+                // 월별 필터 버튼 생성
+                updateMonthFilterButtons();
 
                 // paymentDB 디버깅
                 console.log('=== paymentDB 디버깅 ===');
@@ -1208,11 +1273,76 @@
             updateConsultantTable(filtered);
         }
 
+        // 현재 선택된 월
+        let currentMonth = 'all';
+
+        // 월별 필터 버튼 생성
+        function updateMonthFilterButtons() {
+            const container = document.getElementById('monthFilter');
+            let html = '<button class="month-btn active" data-month="all" onclick="filterByMonth(\'all\')">전체</button>';
+            
+            availableMonths.forEach(month => {
+                html += `<button class="month-btn" data-month="${month.key}" onclick="filterByMonth('${month.key}')">${month.name}</button>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 월별 필터링
+        function filterByMonth(month) {
+            currentMonth = month;
+            
+            // 버튼 스타일 업데이트
+            document.querySelectorAll('.month-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.month === month) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // 데이터 필터링
+            let filteredData;
+            if (month === 'all') {
+                filteredData = Object.values(revenueByMonth).flat();
+            } else {
+                filteredData = revenueByMonth[month] || [];
+            }
+            
+            allData.revenue = filteredData;
+            
+            // UI 업데이트
+            updateRevenueTable();
+            updateRevenueSummary();
+            updateFilters();
+        }
+
+        // 매출 요약 업데이트
+        function updateRevenueSummary() {
+            const data = allData.revenue;
+            const total = data.reduce((sum, row) => {
+                const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                return sum + amount;
+            }, 0);
+            const avg = data.length > 0 ? total / data.length : 0;
+
+            document.getElementById('revenueTotalAmount').textContent = formatCurrency(total);
+            document.getElementById('revenueTransCount').textContent = data.length.toLocaleString() + '건';
+            document.getElementById('revenueAvgAmount').textContent = formatCurrency(avg);
+        }
+
         function filterRevenue() {
             const searchTerm = document.getElementById('revenueSearch').value.toLowerCase();
             const filterValue = document.getElementById('revenueProductFilter').value;
 
-            const filtered = allData.revenue.filter(row => {
+            // 현재 선택된 월의 데이터를 기준으로 필터링
+            let baseData;
+            if (currentMonth === 'all') {
+                baseData = Object.values(revenueByMonth).flat();
+            } else {
+                baseData = revenueByMonth[currentMonth] || [];
+            }
+
+            const filtered = baseData.filter(row => {
                 const matchSearch = !searchTerm || 
                     (row['성명'] || '').toLowerCase().includes(searchTerm) ||
                     (row['상품'] || '').toLowerCase().includes(searchTerm);
