@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>한국FP센터 회원 및 매출 통합 관리</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,15 +13,31 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --purple: #8b5cf6;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --white: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
         body {
-            font-family: 'Malgun Gothic', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f5f7fa;
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: #333;
+            color: var(--dark);
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1500px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -28,82 +45,100 @@
         /* 헤더 */
         .header {
             text-align: center;
-            padding: 25px;
+            padding: 30px;
             margin-bottom: 25px;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--success));
         }
 
         .header h1 {
-            font-size: 1.8rem;
-            color: #1a73e8;
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 8px;
             font-weight: 700;
         }
 
         .header p {
-            color: #666;
+            color: var(--gray);
             font-size: 0.95rem;
         }
 
         .last-update {
-            margin-top: 10px;
+            margin-top: 12px;
             font-size: 0.85rem;
-            color: #888;
+            color: var(--gray);
         }
 
         .refresh-btn {
             margin-top: 12px;
-            padding: 8px 20px;
-            border: 1px solid #1a73e8;
-            border-radius: 20px;
-            background: #fff;
-            color: #1a73e8;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
             cursor: pointer;
             font-size: 0.9rem;
+            font-weight: 600;
             transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
 
         .refresh-btn:hover {
-            background: #1a73e8;
-            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
         }
 
         /* 탭 네비게이션 */
         .tab-nav {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 25px;
             flex-wrap: wrap;
             justify-content: center;
-            background: #fff;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            background: var(--white);
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
         }
 
         .tab-btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 0.9rem;
             font-weight: 600;
             transition: all 0.3s;
-            background: #f0f0f0;
-            color: #555;
+            background: var(--light);
+            color: var(--gray);
         }
 
         .tab-btn:hover {
-            background: #e3f2fd;
-            color: #1a73e8;
+            background: #e0e7ff;
+            color: var(--primary);
+            transform: translateY(-2px);
         }
 
         .tab-btn.active {
-            background: #1a73e8;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
-            box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
 
         .tab-content {
@@ -112,83 +147,104 @@
 
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.4s;
+            animation: fadeInUp 0.4s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         /* 통합 현황판 카드 */
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
 
         .summary-card {
-            background: #fff;
-            border-radius: 16px;
-            padding: 24px;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 28px;
             text-align: center;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
-            border-top: 4px solid #ddd;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
         }
 
         .summary-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
         }
 
         .summary-card .icon {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 15px;
         }
 
         .summary-card h3 {
             font-size: 0.85rem;
-            color: #888;
-            margin-bottom: 8px;
+            color: var(--gray);
+            margin-bottom: 10px;
             font-weight: 500;
         }
 
         .summary-card .value {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            color: #333;
         }
 
         .summary-card .sub-value {
             font-size: 0.8rem;
-            color: #aaa;
+            color: var(--gray);
             margin-top: 4px;
         }
 
-        .card-membership { border-top-color: #e74c3c; }
-        .card-membership .value { color: #e74c3c; }
-        
-        .card-branch { border-top-color: #3498db; }
-        .card-branch .value { color: #3498db; }
-        
-        .card-corporate { border-top-color: #9b59b6; }
-        .card-corporate .value { color: #9b59b6; }
-        
-        .card-consultant { border-top-color: #27ae60; }
-        .card-consultant .value { color: #27ae60; }
-        
-        .card-revenue { border-top-color: #f39c12; }
-        .card-revenue .value { color: #f39c12; }
+        /* 카드 색상별 스타일 */
+        .card-membership::before { background: linear-gradient(90deg, #ef4444, #f97316); }
+        .card-membership .icon { background: linear-gradient(135deg, #fef2f2, #fee2e2); }
+        .card-membership .value { color: #ef4444; }
+
+        .card-branch::before { background: linear-gradient(90deg, #3b82f6, #6366f1); }
+        .card-branch .icon { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+        .card-branch .value { color: #3b82f6; }
+
+        .card-corporate::before { background: linear-gradient(90deg, #8b5cf6, #a855f7); }
+        .card-corporate .icon { background: linear-gradient(135deg, #f5f3ff, #ede9fe); }
+        .card-corporate .value { color: #8b5cf6; }
+
+        .card-consultant::before { background: linear-gradient(90deg, #10b981, #14b8a6); }
+        .card-consultant .icon { background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+        .card-consultant .value { color: #10b981; }
+
+        .card-revenue::before { background: linear-gradient(90deg, #f59e0b, #eab308); }
+        .card-revenue .icon { background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+        .card-revenue .value { color: #f59e0b; }
 
         /* 검색 영역 */
         .search-section {
-            background: #fff;
-            border-radius: 12px;
+            background: var(--white);
+            border-radius: 16px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: var(--shadow);
         }
 
         .search-row {
@@ -201,29 +257,30 @@
         .search-input {
             flex: 1;
             min-width: 200px;
-            padding: 12px 18px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: #fff;
-            color: #333;
+            padding: 14px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: var(--light);
+            color: var(--dark);
             font-size: 0.95rem;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
         }
 
         .search-input::placeholder {
-            color: #aaa;
+            color: var(--gray);
         }
 
         .search-input:focus {
             outline: none;
-            border-color: #1a73e8;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
 
         .search-btn {
-            padding: 12px 24px;
+            padding: 14px 28px;
             border: none;
-            border-radius: 8px;
-            background: #1a73e8;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
             font-weight: 600;
             cursor: pointer;
@@ -231,53 +288,53 @@
         }
 
         .search-btn:hover {
-            background: #1557b0;
-            box-shadow: 0 4px 12px rgba(26,115,232,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
         }
 
         .filter-select {
-            padding: 12px 18px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: #fff;
-            color: #333;
+            padding: 14px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: var(--light);
+            color: var(--dark);
             font-size: 0.95rem;
             cursor: pointer;
         }
 
         .filter-select:focus {
             outline: none;
-            border-color: #1a73e8;
+            border-color: var(--primary);
         }
 
         /* 테이블 스타일 */
         .table-container {
-            background: #fff;
-            border-radius: 12px;
+            background: var(--white);
+            border-radius: 16px;
             overflow: hidden;
             margin-bottom: 25px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
         }
 
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #eee;
+            padding: 20px 24px;
+            background: linear-gradient(135deg, var(--light), var(--white));
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .table-title {
             font-size: 1.1rem;
-            font-weight: 600;
-            color: #333;
+            font-weight: 700;
+            color: var(--dark);
         }
 
         .table-count {
-            background: #e3f2fd;
-            color: #1a73e8;
-            padding: 5px 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 6px 16px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
@@ -289,13 +346,13 @@
         }
 
         .data-table th {
-            background: #f8f9fa;
-            padding: 14px 16px;
+            background: var(--light);
+            padding: 16px 20px;
             text-align: left;
             font-weight: 600;
-            color: #555;
+            color: var(--gray);
             font-size: 0.85rem;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid #e2e8f0;
             cursor: pointer;
             user-select: none;
             position: relative;
@@ -303,23 +360,25 @@
         }
 
         .data-table th:hover {
-            background: #e9ecef;
+            background: #e2e8f0;
         }
 
         .data-table th .sort-icon {
-            margin-left: 5px;
+            margin-left: 6px;
             font-size: 0.75rem;
-            color: #aaa;
+            opacity: 0.5;
         }
 
         .data-table th.sort-asc .sort-icon::after {
             content: '▲';
-            color: #1a73e8;
+            color: var(--primary);
+            opacity: 1;
         }
 
         .data-table th.sort-desc .sort-icon::after {
             content: '▼';
-            color: #1a73e8;
+            color: var(--primary);
+            opacity: 1;
         }
 
         .data-table th:not(.sort-asc):not(.sort-desc) .sort-icon::after {
@@ -327,19 +386,36 @@
         }
 
         .data-table td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #f0f0f0;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
             font-size: 0.9rem;
-            color: #444;
+            color: var(--dark);
         }
 
-        .data-table tr:hover {
-            background: #f8fbff;
+        .data-table tr:hover td {
+            background: #f8fafc;
         }
 
         .table-scroll {
-            max-height: 450px;
+            max-height: 500px;
             overflow-y: auto;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .table-scroll::-webkit-scrollbar {
@@ -371,34 +447,34 @@
             background: #fff;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
         }
 
         .chart-card h3 {
-            color: #333;
-            margin-bottom: 16px;
+            color: var(--dark);
+            margin-bottom: 20px;
             font-size: 1rem;
             font-weight: 600;
         }
 
         .chart-container {
             position: relative;
-            height: 280px;
+            height: 300px;
         }
 
         /* 배지 */
         .badge {
             display: inline-block;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
             font-weight: 600;
         }
 
-        .badge-membership { background: #fdeaea; color: #e74c3c; }
-        .badge-branch { background: #e8f4fc; color: #3498db; }
-        .badge-corporate { background: #f4ecf7; color: #9b59b6; }
-        .badge-consultant { background: #e8f8f0; color: #27ae60; }
+        .badge-membership { background: linear-gradient(135deg, #fef2f2, #fee2e2); color: #ef4444; }
+        .badge-branch { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #3b82f6; }
+        .badge-corporate { background: linear-gradient(135deg, #f5f3ff, #ede9fe); color: #8b5cf6; }
+        .badge-consultant { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #10b981; }
 
         /* 통합 검색 결과 */
         .search-results {
@@ -407,30 +483,30 @@
 
         .result-group {
             margin-bottom: 20px;
-            background: #fff;
-            border-radius: 12px;
+            background: var(--white);
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: var(--shadow);
         }
 
         .result-group-title {
             font-size: 1rem;
             font-weight: 600;
-            color: #333;
-            padding: 14px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #eee;
+            color: var(--dark);
+            padding: 16px 24px;
+            background: var(--light);
+            border-bottom: 1px solid #e2e8f0;
         }
 
         /* 반응형 */
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 1.4rem;
+                font-size: 1.5rem;
             }
 
             .tab-btn {
-                padding: 8px 14px;
-                font-size: 0.8rem;
+                padding: 10px 16px;
+                font-size: 0.85rem;
             }
 
             .summary-card .value {
@@ -442,15 +518,15 @@
             }
 
             .data-table th, .data-table td {
-                padding: 10px 12px;
-                font-size: 0.8rem;
+                padding: 12px 14px;
+                font-size: 0.85rem;
             }
         }
 
         /* 매출 요약 카드 */
         .revenue-summary {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
             margin-bottom: 25px;
         }
@@ -458,88 +534,240 @@
         /* 월별 필터 버튼 */
         .month-filter {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
-            background: #fff;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            background: var(--white);
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
         }
 
         .month-btn {
-            padding: 8px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 20px;
-            background: #fff;
-            color: #666;
+            padding: 10px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            background: var(--white);
+            color: var(--gray);
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
             transition: all 0.3s;
         }
 
         .month-btn:hover {
-            border-color: #f39c12;
-            color: #f39c12;
+            border-color: var(--secondary);
+            color: var(--secondary);
+            transform: translateY(-2px);
         }
 
         .month-btn.active {
-            background: #f39c12;
-            border-color: #f39c12;
+            background: linear-gradient(135deg, var(--secondary), #d97706);
+            border-color: var(--secondary);
             color: #fff;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
         }
 
         .revenue-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-left: 4px solid #f39c12;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--secondary);
+            transition: all 0.3s;
+        }
+
+        .revenue-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
         }
 
         .revenue-card h4 {
-            color: #888;
+            color: var(--gray);
             font-size: 0.85rem;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 500;
         }
 
         .revenue-card .amount {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            color: #f39c12;
+            color: var(--secondary);
+        }
+
+        .revenue-card .change-detail {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .revenue-card .amount.up {
+            color: var(--success);
+        }
+
+        .revenue-card .amount.down {
+            color: var(--danger);
         }
 
         /* 금액 강조 */
         .money {
             font-weight: 600;
-            color: #2ecc71;
+            color: var(--success);
         }
 
         /* 빈 상태 */
         .empty-state {
             text-align: center;
-            padding: 40px;
-            color: #aaa;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* 로딩 오버레이 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.3s;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            margin-top: 15px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 페이지네이션 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        .page-btn {
+            min-width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 10px;
+            background: var(--light);
+            color: var(--gray);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #e0e7ff;
+            color: var(--primary);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin: 0 10px;
+        }
+
+        /* 엑셀 버튼 */
+        .btn-excel {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-excel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        /* 헤더 버튼 그룹 */
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
         }
     </style>
 </head>
 <body>
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">데이터를 불러오는 중...</div>
+    </div>
+
     <div class="container">
         <!-- 헤더 -->
         <div class="header">
             <h1>📊 한국FP센터 회원 및 매출 통합 관리</h1>
             <p>멤버십 · 지사 · 기업 · 컨설턴트 회원 현황 및 매출 분석</p>
             <div class="last-update">마지막 업데이트: <span id="lastUpdate">-</span></div>
-            <button class="refresh-btn" onclick="loadAllData()">🔄 새로고침</button>
+            <div class="header-buttons">
+                <button class="refresh-btn" onclick="loadAllData()">🔄 새로고침</button>
+                <button class="btn-excel" onclick="exportAllToExcel()">📥 전체 엑셀 다운로드</button>
+            </div>
         </div>
 
         <!-- 탭 네비게이션 -->
         <div class="tab-nav">
             <button class="tab-btn active" data-tab="dashboard">📈 통합 현황판</button>
-            <button class="tab-btn" data-tab="membership">🎯 멤버십</button>
+            <button class="tab-btn" data-tab="membership">🎯 이너서클</button>
             <button class="tab-btn" data-tab="branch">🏢 지사</button>
             <button class="tab-btn" data-tab="corporate">🏛️ 기업</button>
             <button class="tab-btn" data-tab="consultant">👔 컨설턴트</button>
@@ -602,16 +830,14 @@
         <div id="membership" class="tab-content">
             <div class="search-section">
                 <div class="search-row">
-                    <input type="text" class="search-input" id="membershipSearch" placeholder="성명 또는 모바일로 검색...">
-                    <select class="filter-select" id="membershipFilter">
-                        <option value="all">전체 구분</option>
-                    </select>
+                    <input type="text" class="search-input" id="membershipSearch" placeholder="🔍 이름, 회사명, 전화번호로 검색..." onkeypress="if(event.key==='Enter') filterMembership()">
                     <button class="search-btn" onclick="filterMembership()">검색</button>
+                    <button class="btn-excel" onclick="exportToExcel('membership')">📥 엑셀</button>
                 </div>
             </div>
             <div class="table-container">
                 <div class="table-header">
-                    <span class="table-title">🎯 멤버십 회원 (이너서클) 목록</span>
+                    <span class="table-title">🎯 이너서클 회원 목록</span>
                     <span class="table-count" id="membershipTableCount">0명</span>
                 </div>
                 <div class="table-scroll">
@@ -628,6 +854,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
+                <div class="pagination" id="membershipPagination"></div>
             </div>
         </div>
 
@@ -635,8 +862,9 @@
         <div id="branch" class="tab-content">
             <div class="search-section">
                 <div class="search-row">
-                    <input type="text" class="search-input" id="branchSearch" placeholder="성명 또는 모바일로 검색...">
+                    <input type="text" class="search-input" id="branchSearch" placeholder="🔍 성명, 모바일로 검색..." onkeypress="if(event.key==='Enter') filterBranch()">
                     <button class="search-btn" onclick="filterBranch()">검색</button>
+                    <button class="btn-excel" onclick="exportToExcel('branch')">📥 엑셀</button>
                 </div>
             </div>
             <div class="table-container">
@@ -656,6 +884,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
+                <div class="pagination" id="branchPagination"></div>
             </div>
         </div>
 
@@ -663,8 +892,9 @@
         <div id="corporate" class="tab-content">
             <div class="search-section">
                 <div class="search-row">
-                    <input type="text" class="search-input" id="corporateSearch" placeholder="회사명 또는 담당자 검색...">
+                    <input type="text" class="search-input" id="corporateSearch" placeholder="🔍 회사명, 담당자, 전화번호로 검색..." onkeypress="if(event.key==='Enter') filterCorporate()">
                     <button class="search-btn" onclick="filterCorporate()">검색</button>
+                    <button class="btn-excel" onclick="exportToExcel('corporate')">📥 엑셀</button>
                 </div>
             </div>
             <div class="table-container">
@@ -686,6 +916,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
+                <div class="pagination" id="corporatePagination"></div>
             </div>
         </div>
 
@@ -693,11 +924,9 @@
         <div id="consultant" class="tab-content">
             <div class="search-section">
                 <div class="search-row">
-                    <input type="text" class="search-input" id="consultantSearch" placeholder="성명 또는 소속사 검색...">
-                    <select class="filter-select" id="consultantCompanyFilter">
-                        <option value="all">전체 소속사</option>
-                    </select>
+                    <input type="text" class="search-input" id="consultantSearch" placeholder="🔍 이름, 회사명, 전화번호로 검색..." onkeypress="if(event.key==='Enter') filterConsultant()">
                     <button class="search-btn" onclick="filterConsultant()">검색</button>
+                    <button class="btn-excel" onclick="exportToExcel('consultant')">📥 엑셀</button>
                 </div>
             </div>
             <div class="table-container">
@@ -719,6 +948,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
+                <div class="pagination" id="consultantPagination"></div>
             </div>
         </div>
 
@@ -727,7 +957,6 @@
             <!-- 월별 필터 버튼 -->
             <div class="month-filter" id="monthFilter">
                 <button class="month-btn active" data-month="all" onclick="filterByMonth('all')">전체</button>
-                <!-- 월 버튼은 JavaScript에서 동적으로 추가됨 -->
             </div>
 
             <div class="revenue-summary">
@@ -742,6 +971,11 @@
                 <div class="revenue-card">
                     <h4>📊 평균 결제금액</h4>
                     <div class="amount" id="revenueAvgAmount">-</div>
+                </div>
+                <div class="revenue-card">
+                    <h4>📈 전월 대비</h4>
+                    <div class="amount" id="revenueChangeRate">-</div>
+                    <div class="change-detail" id="revenueChangeDetail"></div>
                 </div>
             </div>
 
@@ -767,6 +1001,7 @@
                         <option value="all">전체 상품</option>
                     </select>
                     <button class="search-btn" onclick="filterRevenue()">검색</button>
+                    <button class="btn-excel" onclick="exportToExcel('revenue')">📥 엑셀</button>
                 </div>
             </div>
             <div class="table-container">
@@ -789,6 +1024,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
+                <div class="pagination" id="revenuePagination"></div>
             </div>
         </div>
 
@@ -796,16 +1032,20 @@
         <div id="search" class="tab-content">
             <div class="search-section">
                 <div class="search-row">
-                    <input type="text" class="search-input" id="globalSearch" placeholder="성명으로 전체 시트 검색...">
+                    <input type="text" class="search-input" id="globalSearch" placeholder="🔍 이름으로 전체 데이터 검색..." onkeypress="if(event.key==='Enter') performGlobalSearch()">
                     <button class="search-btn" onclick="performGlobalSearch()">🔍 통합 검색</button>
                 </div>
             </div>
             <div class="search-results" id="globalSearchResults">
-                <div class="empty-state">검색어를 입력하고 검색 버튼을 클릭하세요.</div>
+                <div class="empty-state">
+                    <div class="icon">🔍</div>
+                    <p>검색어를 입력하고 검색 버튼을 클릭하세요.</p>
+                </div>
             </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // ========== 설정 ==========
         const SHEETS_CONFIG = {
@@ -876,6 +1116,26 @@
             revenue: []
         };
 
+        // 페이지네이션 설정
+        const PAGE_SIZE = 15;
+        let currentPage = {
+            membership: 1,
+            branch: 1,
+            corporate: 1,
+            consultant: 1,
+            revenue: 1
+        };
+
+        // 로딩 표시
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
         let charts = {};
 
         // ========== 탭 기능 ==========
@@ -941,6 +1201,7 @@
 
         // ========== 데이터 로드 ==========
         async function loadAllData() {
+            showLoading(true);
             try {
                 // paymentDB와 지사 데이터 로드
                 const [paymentDB, branch] = await Promise.all([
@@ -1055,6 +1316,8 @@
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleString('ko-KR');
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
+            } finally {
+                showLoading(false);
             }
         }
 
@@ -1072,13 +1335,16 @@
             document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
         }
 
-        // ========== 테이블 업데이트 ==========
+        // ========== 테이블 업데이트 (페이지네이션 적용) ==========
         function updateMembershipTable(data = null) {
             const tableData = data || allData.membership;
-            const tbody = document.querySelector('#membershipTable tbody');
+            const page = currentPage.membership;
+            const start = (page - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            const pageData = tableData.slice(start, end);
             
-            tbody.innerHTML = tableData.map((row, idx) => {
-                // paymentDB 컬럼: name, promotion, company_name, mobile
+            const tbody = document.querySelector('#membershipTable tbody');
+            tbody.innerHTML = pageData.map((row, idx) => {
                 const name = row['name'] || '-';
                 const promotion = row['promotion'] || '-';
                 const companyName = row['company_name'] || '-';
@@ -1086,8 +1352,8 @@
                 
                 return `
                 <tr>
-                    <td>${idx + 1}</td>
-                    <td>${name}</td>
+                    <td>${start + idx + 1}</td>
+                    <td><strong>${name}</strong></td>
                     <td>${companyName}</td>
                     <td>${mobile}</td>
                     <td>${promotion}</td>
@@ -1095,33 +1361,42 @@
             `}).join('');
 
             document.getElementById('membershipTableCount').textContent = `${tableData.length}명`;
+            renderPagination('membership', tableData.length);
         }
 
         function updateBranchTable(data = null) {
             const tableData = data || allData.branch;
-            const tbody = document.querySelector('#branchTable tbody');
+            const page = currentPage.branch;
+            const start = (page - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            const pageData = tableData.slice(start, end);
             
-            tbody.innerHTML = tableData.map((row, idx) => {
+            const tbody = document.querySelector('#branchTable tbody');
+            tbody.innerHTML = pageData.map((row, idx) => {
                 const name = row['성명'] || '-';
                 const mobile = row['mobile'] || '-';
                 
                 return `
                 <tr>
-                    <td>${idx + 1}</td>
-                    <td>${name}</td>
+                    <td>${start + idx + 1}</td>
+                    <td><strong>${name}</strong></td>
                     <td>${mobile}</td>
                 </tr>
             `}).join('');
 
             document.getElementById('branchTableCount').textContent = `${tableData.length}개`;
+            renderPagination('branch', tableData.length);
         }
 
         function updateCorporateTable(data = null) {
             const tableData = data || allData.corporate;
-            const tbody = document.querySelector('#corporateTable tbody');
+            const page = currentPage.corporate;
+            const start = (page - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            const pageData = tableData.slice(start, end);
             
-            tbody.innerHTML = tableData.map((row, idx) => {
-                // paymentDB 컬럼: name, promotion, company_name, mobile
+            const tbody = document.querySelector('#corporateTable tbody');
+            tbody.innerHTML = pageData.map((row, idx) => {
                 const name = row['name'] || '-';
                 const companyName = row['company_name'] || '-';
                 const mobile = row['mobile'] || '-';
@@ -1129,8 +1404,8 @@
                 
                 return `
                 <tr>
-                    <td>${idx + 1}</td>
-                    <td>${companyName}</td>
+                    <td>${start + idx + 1}</td>
+                    <td><strong>${companyName}</strong></td>
                     <td>${name}</td>
                     <td>${mobile}</td>
                     <td>${promotion}</td>
@@ -1138,14 +1413,18 @@
             `}).join('');
 
             document.getElementById('corporateTableCount').textContent = `${tableData.length}개`;
+            renderPagination('corporate', tableData.length);
         }
 
         function updateConsultantTable(data = null) {
             const tableData = data || allData.consultant;
-            const tbody = document.querySelector('#consultantTable tbody');
+            const page = currentPage.consultant;
+            const start = (page - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            const pageData = tableData.slice(start, end);
             
-            tbody.innerHTML = tableData.map((row, idx) => {
-                // paymentDB 컬럼: name, promotion, company_name, mobile
+            const tbody = document.querySelector('#consultantTable tbody');
+            tbody.innerHTML = pageData.map((row, idx) => {
                 const name = row['name'] || '-';
                 const companyName = row['company_name'] || '-';
                 const mobile = row['mobile'] || '-';
@@ -1153,8 +1432,8 @@
                 
                 return `
                 <tr>
-                    <td>${idx + 1}</td>
-                    <td>${name}</td>
+                    <td>${start + idx + 1}</td>
+                    <td><strong>${name}</strong></td>
                     <td>${companyName}</td>
                     <td>${mobile}</td>
                     <td>${promotion}</td>
@@ -1162,24 +1441,30 @@
             `}).join('');
 
             document.getElementById('consultantTableCount').textContent = `${tableData.length}명`;
+            renderPagination('consultant', tableData.length);
         }
 
         function updateRevenueTable(data = null) {
             const tableData = data || allData.revenue;
-            const tbody = document.querySelector('#revenueTable tbody');
+            const page = currentPage.revenue;
+            const start = (page - 1) * PAGE_SIZE;
+            const end = start + PAGE_SIZE;
+            const pageData = tableData.slice(start, end);
             
-            tbody.innerHTML = tableData.map((row, idx) => `
+            const tbody = document.querySelector('#revenueTable tbody');
+            tbody.innerHTML = pageData.map((row, idx) => `
                 <tr>
-                    <td>${idx + 1}</td>
+                    <td>${start + idx + 1}</td>
                     <td>${formatDateValue(row['일자'])}</td>
-                    <td>${row['성명'] || '-'}</td>
-                    <td>${row['결제유형'] || '-'}</td>
+                    <td><strong>${row['성명'] || '-'}</strong></td>
+                    <td><span class="badge badge-branch">${row['결제유형'] || '-'}</span></td>
                     <td>${row['상품'] || '-'}</td>
                     <td class="money">${formatCurrency(row['총 결제금액\n(카드및송금)'] || 0)}</td>
                 </tr>
             `).join('');
 
             document.getElementById('revenueTableCount').textContent = `${tableData.length}건`;
+            renderPagination('revenue', tableData.length);
 
             const total = tableData.reduce((sum, row) => {
                 const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
@@ -1190,6 +1475,57 @@
             document.getElementById('revenueTotalAmount').textContent = formatCurrency(total);
             document.getElementById('revenueTransCount').textContent = tableData.length.toLocaleString() + '건';
             document.getElementById('revenueAvgAmount').textContent = formatCurrency(avg);
+        }
+
+        // ========== 페이지네이션 ==========
+        function renderPagination(type, totalItems) {
+            const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+            const page = currentPage[type];
+            const container = document.getElementById(`${type}Pagination`);
+            
+            if (!container) return;
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = `
+                <button class="page-btn" onclick="goToPage('${type}', 1)" ${page === 1 ? 'disabled' : ''}>«</button>
+                <button class="page-btn" onclick="goToPage('${type}', ${page - 1})" ${page === 1 ? 'disabled' : ''}>‹</button>
+            `;
+            
+            const startPage = Math.max(1, page - 2);
+            const endPage = Math.min(totalPages, page + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="goToPage('${type}', ${i})">${i}</button>`;
+            }
+            
+            html += `
+                <span class="page-info">${page} / ${totalPages}</span>
+                <button class="page-btn" onclick="goToPage('${type}', ${page + 1})" ${page === totalPages ? 'disabled' : ''}>›</button>
+                <button class="page-btn" onclick="goToPage('${type}', ${totalPages})" ${page === totalPages ? 'disabled' : ''}>»</button>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function goToPage(type, page) {
+            const data = allData[type];
+            const totalPages = Math.ceil(data.length / PAGE_SIZE);
+            
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage[type] = page;
+            
+            switch(type) {
+                case 'membership': updateMembershipTable(); break;
+                case 'branch': updateBranchTable(); break;
+                case 'corporate': updateCorporateTable(); break;
+                case 'consultant': updateConsultantTable(); break;
+                case 'revenue': updateRevenueTable(); break;
+            }
         }
 
         // ========== 필터 업데이트 ==========
@@ -1214,8 +1550,8 @@
         // ========== 검색/필터 함수 ==========
         function filterMembership() {
             const searchTerm = document.getElementById('membershipSearch').value.toLowerCase();
-            const filterValue = document.getElementById('membershipFilter').value;
 
+            allData.membership = allData.membership; // 원본 유지
             const filtered = allData.membership.filter(row => {
                 const name = row['name'] || '';
                 const mobile = row['mobile'] || '';
@@ -1228,6 +1564,7 @@
                 return matchSearch;
             });
 
+            currentPage.membership = 1;
             updateMembershipTable(filtered);
         }
 
@@ -1242,6 +1579,7 @@
                     String(mobile).includes(searchTerm);
             });
 
+            currentPage.branch = 1;
             updateBranchTable(filtered);
         }
 
@@ -1259,12 +1597,12 @@
                     String(mobile).includes(searchTerm);
             });
 
+            currentPage.corporate = 1;
             updateCorporateTable(filtered);
         }
 
         function filterConsultant() {
             const searchTerm = document.getElementById('consultantSearch').value.toLowerCase();
-            const filterValue = document.getElementById('consultantCompanyFilter').value;
 
             const filtered = allData.consultant.filter(row => {
                 const name = row['name'] || '';
@@ -1275,10 +1613,10 @@
                     String(name).toLowerCase().includes(searchTerm) ||
                     String(companyName).toLowerCase().includes(searchTerm) ||
                     String(mobile).includes(searchTerm);
-                const matchFilter = filterValue === 'all' || companyName === filterValue;
-                return matchSearch && matchFilter;
+                return matchSearch;
             });
 
+            currentPage.consultant = 1;
             updateConsultantTable(filtered);
         }
 
@@ -1337,6 +1675,71 @@
             document.getElementById('revenueTotalAmount').textContent = formatCurrency(total);
             document.getElementById('revenueTransCount').textContent = data.length.toLocaleString() + '건';
             document.getElementById('revenueAvgAmount').textContent = formatCurrency(avg);
+
+            // 전월 대비 증감률 계산
+            updateMonthlyChangeRate();
+        }
+
+        function updateMonthlyChangeRate() {
+            const changeRateEl = document.getElementById('revenueChangeRate');
+            const changeDetailEl = document.getElementById('revenueChangeDetail');
+            
+            // 월이 2개 이상 있어야 비교 가능
+            if (availableMonths.length < 2) {
+                changeRateEl.textContent = '-';
+                changeRateEl.className = 'amount';
+                changeDetailEl.textContent = '비교할 전월 데이터 없음';
+                return;
+            }
+
+            // 현재 월과 전월 찾기
+            let currentMonthKey, prevMonthKey;
+            
+            if (currentMonth === 'all') {
+                // 전체 선택 시: 가장 최근 월과 그 전월 비교
+                currentMonthKey = availableMonths[availableMonths.length - 1].key;
+                prevMonthKey = availableMonths[availableMonths.length - 2].key;
+            } else {
+                // 특정 월 선택 시: 해당 월과 전월 비교
+                const currentIdx = availableMonths.findIndex(m => m.key === currentMonth);
+                if (currentIdx <= 0) {
+                    changeRateEl.textContent = '-';
+                    changeRateEl.className = 'amount';
+                    changeDetailEl.textContent = '비교할 전월 데이터 없음';
+                    return;
+                }
+                currentMonthKey = currentMonth;
+                prevMonthKey = availableMonths[currentIdx - 1].key;
+            }
+
+            // 각 월의 매출 합계 계산
+            const currentTotal = (revenueByMonth[currentMonthKey] || []).reduce((sum, row) => {
+                const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                return sum + amount;
+            }, 0);
+
+            const prevTotal = (revenueByMonth[prevMonthKey] || []).reduce((sum, row) => {
+                const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                return sum + amount;
+            }, 0);
+
+            // 증감률 계산
+            if (prevTotal === 0) {
+                changeRateEl.textContent = currentTotal > 0 ? '+100%' : '0%';
+                changeRateEl.className = 'amount up';
+                changeDetailEl.textContent = `${prevMonthKey} → ${currentMonthKey}`;
+                return;
+            }
+
+            const changeRate = ((currentTotal - prevTotal) / prevTotal) * 100;
+            const isUp = changeRate >= 0;
+            
+            changeRateEl.textContent = (isUp ? '+' : '') + changeRate.toFixed(1) + '%';
+            changeRateEl.className = 'amount ' + (isUp ? 'up' : 'down');
+            
+            const diff = currentTotal - prevTotal;
+            const diffText = (isUp ? '+' : '') + formatCurrency(diff);
+            changeDetailEl.textContent = `${prevMonthKey} → ${currentMonthKey} (${diffText})`;
         }
 
         function filterRevenue() {
@@ -1812,15 +2215,127 @@
             return num.toLocaleString('ko-KR') + '원';
         }
 
-        // ========== 엔터키 검색 ==========
-        document.querySelectorAll('.search-input').forEach(input => {
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const btn = input.parentElement.querySelector('.search-btn');
-                    if (btn) btn.click();
-                }
-            });
-        });
+        // ========== 엑셀 다운로드 ==========
+        function exportToExcel(type) {
+            let data = [];
+            let filename = '';
+            let headers = [];
+            
+            switch(type) {
+                case 'membership':
+                    headers = ['No', '이름', '회사명', '전화번호', '비고'];
+                    data = allData.membership.map((row, idx) => [
+                        idx + 1,
+                        row['name'] || '',
+                        row['company_name'] || '',
+                        row['mobile'] || '',
+                        row['promotion'] || ''
+                    ]);
+                    filename = '이너서클_회원';
+                    break;
+                case 'branch':
+                    headers = ['No', '성명', '모바일'];
+                    data = allData.branch.map((row, idx) => [
+                        idx + 1,
+                        row['성명'] || '',
+                        row['mobile'] || ''
+                    ]);
+                    filename = '지사';
+                    break;
+                case 'corporate':
+                    headers = ['No', '회사명', '담당자', '전화번호', '비고'];
+                    data = allData.corporate.map((row, idx) => [
+                        idx + 1,
+                        row['company_name'] || '',
+                        row['name'] || '',
+                        row['mobile'] || '',
+                        row['promotion'] || ''
+                    ]);
+                    filename = '기업_홈페이지';
+                    break;
+                case 'consultant':
+                    headers = ['No', '이름', '회사명', '전화번호', '비고'];
+                    data = allData.consultant.map((row, idx) => [
+                        idx + 1,
+                        row['name'] || '',
+                        row['company_name'] || '',
+                        row['mobile'] || '',
+                        row['promotion'] || ''
+                    ]);
+                    filename = '컨설턴트';
+                    break;
+                case 'revenue':
+                    headers = ['No', '일자', '성명', '결제유형', '상품', '결제금액'];
+                    data = allData.revenue.map((row, idx) => [
+                        idx + 1,
+                        formatDateValue(row['일자']),
+                        row['성명'] || '',
+                        row['결제유형'] || '',
+                        row['상품'] || '',
+                        parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0
+                    ]);
+                    filename = '매출';
+                    break;
+            }
+            
+            // 워크시트 생성
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            
+            // 다운로드
+            const today = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `${filename}_${today}.xlsx`);
+        }
+
+        function exportAllToExcel() {
+            const wb = XLSX.utils.book_new();
+            
+            // 이너서클
+            const membershipHeaders = ['No', '이름', '회사명', '전화번호', '비고'];
+            const membershipData = allData.membership.map((row, idx) => [
+                idx + 1, row['name'] || '', row['company_name'] || '', row['mobile'] || '', row['promotion'] || ''
+            ]);
+            const ws1 = XLSX.utils.aoa_to_sheet([membershipHeaders, ...membershipData]);
+            XLSX.utils.book_append_sheet(wb, ws1, '이너서클');
+            
+            // 지사
+            const branchHeaders = ['No', '성명', '모바일'];
+            const branchData = allData.branch.map((row, idx) => [
+                idx + 1, row['성명'] || '', row['mobile'] || ''
+            ]);
+            const ws2 = XLSX.utils.aoa_to_sheet([branchHeaders, ...branchData]);
+            XLSX.utils.book_append_sheet(wb, ws2, '지사');
+            
+            // 기업
+            const corporateHeaders = ['No', '회사명', '담당자', '전화번호', '비고'];
+            const corporateData = allData.corporate.map((row, idx) => [
+                idx + 1, row['company_name'] || '', row['name'] || '', row['mobile'] || '', row['promotion'] || ''
+            ]);
+            const ws3 = XLSX.utils.aoa_to_sheet([corporateHeaders, ...corporateData]);
+            XLSX.utils.book_append_sheet(wb, ws3, '기업');
+            
+            // 컨설턴트
+            const consultantHeaders = ['No', '이름', '회사명', '전화번호', '비고'];
+            const consultantData = allData.consultant.map((row, idx) => [
+                idx + 1, row['name'] || '', row['company_name'] || '', row['mobile'] || '', row['promotion'] || ''
+            ]);
+            const ws4 = XLSX.utils.aoa_to_sheet([consultantHeaders, ...consultantData]);
+            XLSX.utils.book_append_sheet(wb, ws4, '컨설턴트');
+            
+            // 매출
+            const revenueHeaders = ['No', '일자', '성명', '결제유형', '상품', '결제금액'];
+            const revenueData = allData.revenue.map((row, idx) => [
+                idx + 1, formatDateValue(row['일자']), row['성명'] || '', row['결제유형'] || '', row['상품'] || '',
+                parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0
+            ]);
+            const ws5 = XLSX.utils.aoa_to_sheet([revenueHeaders, ...revenueData]);
+            XLSX.utils.book_append_sheet(wb, ws5, '매출');
+            
+            // 다운로드
+            const today = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `한국FP센터_전체데이터_${today}.xlsx`);
+        }
 
         // ========== 초기화 ==========
         document.addEventListener('DOMContentLoaded', loadAllData);
