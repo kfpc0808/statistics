@@ -1924,12 +1924,14 @@
         // ========== 차트 업데이트 ==========
         function updateCharts() {
             // 회원 분포 차트
-            const memberDistCtx = document.getElementById('memberDistChart').getContext('2d');
+            const memberDistCtx = document.getElementById('memberDistChart');
+            if (!memberDistCtx) return;
+            
             if (charts.memberDist) charts.memberDist.destroy();
-            charts.memberDist = new Chart(memberDistCtx, {
+            charts.memberDist = new Chart(memberDistCtx.getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['멤버십', '지사', '기업', '컨설턴트'],
+                    labels: ['이너서클', '지사', '기업', '컨설턴트'],
                     datasets: [{
                         data: [
                             allData.membership.length,
@@ -1937,8 +1939,9 @@
                             allData.corporate.length,
                             allData.consultant.length
                         ],
-                        backgroundColor: ['#e74c3c', '#3498db', '#9b59b6', '#27ae60'],
-                        borderWidth: 0
+                        backgroundColor: ['#ef4444', '#3b82f6', '#8b5cf6', '#10b981'],
+                        borderWidth: 0,
+                        borderRadius: 5
                     }]
                 },
                 options: {
@@ -1949,44 +1952,37 @@
                             position: 'bottom',
                             labels: { color: '#555', padding: 15, font: { size: 12 } }
                         }
-                    }
+                    },
+                    cutout: '60%'
                 }
             });
 
-            // 월별 매출 차트
-            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            // 월별 매출 차트 - revenueByMonth 사용
+            const revenueCtx = document.getElementById('revenueChart');
+            if (!revenueCtx) return;
+            
             if (charts.revenue) charts.revenue.destroy();
             
-            const monthlyRevenue = {};
-            allData.revenue.forEach(row => {
-                const date = row['일자'];
-                if (date) {
-                    let month;
-                    if (typeof date === 'string') {
-                        const match = date.match(/(\d{4})[.-]?(\d{2})/);
-                        if (match) month = `${match[1]}-${match[2]}`;
-                    }
-                    if (month) {
-                        const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
-                        monthlyRevenue[month] = (monthlyRevenue[month] || 0) + amount;
-                    }
-                }
+            const monthLabels = availableMonths.map(m => m.name);
+            const monthData = availableMonths.map(m => {
+                const data = revenueByMonth[m.key] || [];
+                return data.reduce((sum, row) => {
+                    const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                    return sum + amount;
+                }, 0);
             });
 
-            const sortedMonths = Object.keys(monthlyRevenue).sort();
-            charts.revenue = new Chart(revenueCtx, {
-                type: 'line',
+            charts.revenue = new Chart(revenueCtx.getContext('2d'), {
+                type: 'bar',
                 data: {
-                    labels: sortedMonths.length > 0 ? sortedMonths : ['데이터 없음'],
+                    labels: monthLabels.length > 0 ? monthLabels : ['데이터 없음'],
                     datasets: [{
                         label: '월별 매출',
-                        data: sortedMonths.length > 0 ? sortedMonths.map(m => monthlyRevenue[m]) : [0],
-                        borderColor: '#f39c12',
-                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#f39c12',
-                        pointRadius: 4
+                        data: monthData.length > 0 ? monthData : [0],
+                        backgroundColor: 'rgba(245, 158, 11, 0.8)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        borderRadius: 8
                     }]
                 },
                 options: {
@@ -1996,19 +1992,24 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: { color: '#888' },
-                            grid: { color: '#eee' }
+                            ticks: { 
+                                color: '#888',
+                                callback: value => (value / 10000).toLocaleString() + '만'
+                            },
+                            grid: { color: '#f1f5f9' }
                         },
                         x: {
                             ticks: { color: '#888' },
-                            grid: { color: '#eee' }
+                            grid: { display: false }
                         }
                     }
                 }
             });
 
             // 상품별 매출 차트
-            const productCtx = document.getElementById('productChart').getContext('2d');
+            const productCtx = document.getElementById('productChart');
+            if (!productCtx) return;
+            
             if (charts.product) charts.product.destroy();
             
             const productRevenue = {};
@@ -2020,9 +2021,9 @@
 
             const productLabels = Object.keys(productRevenue);
             const productData = productLabels.map(p => productRevenue[p]);
-            const productColors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22'];
+            const productColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
 
-            charts.product = new Chart(productCtx, {
+            charts.product = new Chart(productCtx.getContext('2d'), {
                 type: 'pie',
                 data: {
                     labels: productLabels.length > 0 ? productLabels : ['데이터 없음'],
@@ -2046,7 +2047,9 @@
             });
 
             // 결제유형별 차트
-            const paymentCtx = document.getElementById('paymentTypeChart').getContext('2d');
+            const paymentCtx = document.getElementById('paymentTypeChart');
+            if (!paymentCtx) return;
+            
             if (charts.payment) charts.payment.destroy();
             
             const paymentType = {};
@@ -2059,28 +2062,32 @@
             const paymentLabels = Object.keys(paymentType);
             const paymentData = paymentLabels.map(p => paymentType[p]);
 
-            charts.payment = new Chart(paymentCtx, {
+            charts.payment = new Chart(paymentCtx.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: paymentLabels.length > 0 ? paymentLabels : ['데이터 없음'],
                     datasets: [{
                         label: '결제금액',
                         data: paymentData.length > 0 ? paymentData : [0],
-                        backgroundColor: '#3498db',
-                        borderRadius: 6
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444'],
+                        borderRadius: 8
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    indexAxis: 'y',
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: '#888' },
-                            grid: { color: '#eee' }
-                        },
                         x: {
+                            beginAtZero: true,
+                            ticks: { 
+                                color: '#888',
+                                callback: value => (value / 10000).toLocaleString() + '만'
+                            },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        y: {
                             ticks: { color: '#888' },
                             grid: { display: false }
                         }
