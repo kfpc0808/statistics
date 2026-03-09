@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>한국FP센터 회원 및 매출 통합 관리</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -1553,13 +1553,17 @@
 
             const companies = [...new Set(allData.consultant.map(r => r['company_name']).filter(Boolean))];
             const companyFilter = document.getElementById('consultantCompanyFilter');
-            companyFilter.innerHTML = '<option value="all">전체 회사</option>' +
-                companies.map(c => `<option value="${c}">${c}</option>`).join('');
+            if (companyFilter) {
+                companyFilter.innerHTML = '<option value="all">전체 회사</option>' +
+                    companies.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
 
             const products = [...new Set(allData.revenue.map(r => r['상품']).filter(Boolean))];
             const productFilter = document.getElementById('revenueProductFilter');
-            productFilter.innerHTML = '<option value="all">전체 상품</option>' +
-                products.map(p => `<option value="${p}">${p}</option>`).join('');
+            if (productFilter) {
+                productFilter.innerHTML = '<option value="all">전체 상품</option>' +
+                    products.map(p => `<option value="${p}">${p}</option>`).join('');
+            }
         }
 
         // ========== 검색/필터 함수 ==========
@@ -1938,12 +1942,20 @@
 
         // ========== 차트 업데이트 ==========
         function updateCharts() {
+            console.log('=== 차트 업데이트 시작 ===');
+            console.log('Chart 객체 존재:', typeof Chart !== 'undefined');
+            console.log('allData.membership:', allData.membership.length);
+            console.log('allData.revenue:', allData.revenue.length);
+            console.log('availableMonths:', availableMonths);
+            
             try {
                 // 회원 분포 차트
                 const memberDistCtx = document.getElementById('memberDistChart');
+                console.log('memberDistCtx:', memberDistCtx);
+                
                 if (memberDistCtx) {
                     if (charts.memberDist) charts.memberDist.destroy();
-                    charts.memberDist = new Chart(memberDistCtx.getContext('2d'), {
+                    charts.memberDist = new Chart(memberDistCtx, {
                         type: 'doughnut',
                         data: {
                             labels: ['이너서클', '지사', '기업', '컨설턴트'],
@@ -1970,23 +1982,29 @@
                             cutout: '60%'
                         }
                     });
+                    console.log('회원 분포 차트 생성 완료');
                 }
 
-                // 월별 매출 차트 - revenueByMonth 사용
+                // 월별 매출 차트
                 const revenueCtx = document.getElementById('revenueChart');
+                console.log('revenueCtx:', revenueCtx);
+                
                 if (revenueCtx) {
                     if (charts.revenue) charts.revenue.destroy();
                     
-                    const monthLabels = availableMonths.map(m => m.name);
-                    const monthData = availableMonths.map(m => {
-                        const data = revenueByMonth[m.key] || [];
-                        return data.reduce((sum, row) => {
-                            const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                    const monthLabels = availableMonths.map(function(m) { return m.name; });
+                    const monthData = availableMonths.map(function(m) {
+                        var data = revenueByMonth[m.key] || [];
+                        return data.reduce(function(sum, row) {
+                            var amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
                             return sum + amount;
                         }, 0);
                     });
+                    
+                    console.log('monthLabels:', monthLabels);
+                    console.log('monthData:', monthData);
 
-                    charts.revenue = new Chart(revenueCtx.getContext('2d'), {
+                    charts.revenue = new Chart(revenueCtx, {
                         type: 'bar',
                         data: {
                             labels: monthLabels.length > 0 ? monthLabels : ['데이터 없음'],
@@ -2006,10 +2024,7 @@
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    ticks: { 
-                                        color: '#888',
-                                        callback: function(value) { return (value / 10000).toLocaleString() + '만'; }
-                                    },
+                                    ticks: { color: '#888' },
                                     grid: { color: '#f1f5f9' }
                                 },
                                 x: {
@@ -2019,25 +2034,31 @@
                             }
                         }
                     });
+                    console.log('월별 매출 차트 생성 완료');
                 }
 
                 // 상품별 매출 차트
                 const productCtx = document.getElementById('productChart');
+                console.log('productCtx:', productCtx);
+                
                 if (productCtx) {
                     if (charts.product) charts.product.destroy();
                     
-                    const productRevenue = {};
-                    allData.revenue.forEach(row => {
-                        const product = row['상품'] || '기타';
-                        const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                    var productRevenue = {};
+                    allData.revenue.forEach(function(row) {
+                        var product = row['상품'] || '기타';
+                        var amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
                         productRevenue[product] = (productRevenue[product] || 0) + amount;
                     });
 
-                    const productLabels = Object.keys(productRevenue);
-                    const productData = productLabels.map(p => productRevenue[p]);
-                    const productColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
+                    var productLabels = Object.keys(productRevenue);
+                    var productData = productLabels.map(function(p) { return productRevenue[p]; });
+                    var productColors = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#f97316'];
+                    
+                    console.log('productLabels:', productLabels);
+                    console.log('productData:', productData);
 
-                    charts.product = new Chart(productCtx.getContext('2d'), {
+                    charts.product = new Chart(productCtx, {
                         type: 'pie',
                         data: {
                             labels: productLabels.length > 0 ? productLabels : ['데이터 없음'],
@@ -2059,24 +2080,30 @@
                             }
                         }
                     });
+                    console.log('상품별 매출 차트 생성 완료');
                 }
 
                 // 결제유형별 차트
                 const paymentCtx = document.getElementById('paymentTypeChart');
+                console.log('paymentCtx:', paymentCtx);
+                
                 if (paymentCtx) {
                     if (charts.payment) charts.payment.destroy();
                     
-                    const paymentType = {};
-                    allData.revenue.forEach(row => {
-                        const type = row['결제유형'] || '기타';
-                        const amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
+                    var paymentType = {};
+                    allData.revenue.forEach(function(row) {
+                        var type = row['결제유형'] || '기타';
+                        var amount = parseFloat(String(row['총 결제금액\n(카드및송금)'] || '0').replace(/[,원]/g, '')) || 0;
                         paymentType[type] = (paymentType[type] || 0) + amount;
                     });
 
-                    const paymentLabels = Object.keys(paymentType);
-                    const paymentData = paymentLabels.map(p => paymentType[p]);
+                    var paymentLabels = Object.keys(paymentType);
+                    var paymentData = paymentLabels.map(function(p) { return paymentType[p]; });
+                    
+                    console.log('paymentLabels:', paymentLabels);
+                    console.log('paymentData:', paymentData);
 
-                    charts.payment = new Chart(paymentCtx.getContext('2d'), {
+                    charts.payment = new Chart(paymentCtx, {
                         type: 'bar',
                         data: {
                             labels: paymentLabels.length > 0 ? paymentLabels : ['데이터 없음'],
@@ -2095,10 +2122,7 @@
                             scales: {
                                 x: {
                                     beginAtZero: true,
-                                    ticks: { 
-                                        color: '#888',
-                                        callback: function(value) { return (value / 10000).toLocaleString() + '만'; }
-                                    },
+                                    ticks: { color: '#888' },
                                     grid: { color: '#f1f5f9' }
                                 },
                                 y: {
@@ -2108,7 +2132,10 @@
                             }
                         }
                     });
+                    console.log('결제유형별 차트 생성 완료');
                 }
+                
+                console.log('=== 차트 업데이트 완료 ===');
             } catch (error) {
                 console.error('차트 업데이트 오류:', error);
             }
