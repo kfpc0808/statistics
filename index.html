@@ -1062,9 +1062,19 @@
         };
 
         // 매출 시트 설정 (실제 존재하는 시트만 입력!)
+        // 매출 시트 설정 - 현재 날짜 기준 자동 생성
         const REVENUE_SHEETS = {
             id: '1tWuYYz_dXLCupf1D4GqbmTq4LZjoFUH5SDppJBTh44M',
-            sheets: ['2601매출', '2602매출', '2603매출']  // 새 월 추가 시 여기에 추가
+            sheets: (() => {
+                const now = new Date();
+                const year = now.getFullYear().toString().slice(2); // 26
+                const month = now.getMonth() + 1; // 1~12
+                const sheets = [];
+                for (let m = 1; m <= month; m++) {
+                    sheets.push(`${year}${m.toString().padStart(2, '0')}매출`);
+                }
+                return sheets;
+            })()
         };
 
         // 월별 매출 데이터 저장
